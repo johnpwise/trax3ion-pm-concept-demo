@@ -1,0 +1,96 @@
+import { useState } from "react";
+import { Link, useParams } from "react-router-dom";
+
+import PageHeader from "../../app/PageHeader";
+import EmptyState from "../../components/common/EmptyState";
+import HoursSummary from "../../components/common/HoursSummary";
+import { StatusBadge } from "../../components/common/StatusBadge";
+import { useToastStore } from "../../components/common/toastStore";
+import { getProjectAllocatedHours } from "../../store/selectors/projectSelectors";
+import { useTraxionDemoStore } from "../../store/useTraxionDemoStore";
+import { FolderX } from "lucide-react";
+import ActionFormModal from "./components/ActionFormModal";
+import HierarchyTree from "./components/HierarchyTree";
+import PhaseFormModal from "./components/PhaseFormModal";
+import TaskFormModal from "./components/TaskFormModal";
+
+type ActiveModal = { kind: "phase" } | { kind: "task"; phaseId: string } | { kind: "action"; taskId: string } | null;
+
+export default function ProjectDetailView() {
+  const { projectId = "" } = useParams();
+  const [activeModal, setActiveModal] = useState<ActiveModal>(null);
+
+  const project = useTraxionDemoStore((state) => state.projects.find((item) => item.id === projectId));
+  const customer = useTraxionDemoStore((state) => (project ? state.getCustomerById(project.customerId) : undefined));
+  const phases = useTraxionDemoStore((state) => state.phases);
+  const updateProject = useTraxionDemoStore((state) => state.updateProject);
+  const showToast = useToastStore((state) => state.showToast);
+
+  if (!project) {
+    return (
+      <EmptyState
+        icon={FolderX}
+        title="Project not found"
+        description="This project may have been removed by a demo reset."
+        action={
+          <Link to="/projects" className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover">
+            Back to Projects
+          </Link>
+        }
+      />
+    );
+  }
+
+  const allocated = getProjectAllocatedHours(phases, project.id);
+
+  const handleToggleStatus = (): void => {
+    const nextStatus = project.status === "active" ? "inactive" : "active";
+    const result = updateProject(project.id, { status: nextStatus });
+    if (result.ok) {
+      showToast(`${project.name} marked ${nextStatus}.`);
+    }
+  };
+
+  return (
+    <div>
+      <PageHeader
+        title={project.name}
+        breadcrumbs={[
+          { label: "Projects", to: "/projects" },
+          { label: customer?.name ?? "Customer", to: customer ? `/customers/${customer.id}` : undefined },
+          { label: project.name },
+        ]}
+        actions={
+          <button
+            type="button"
+            onClick={handleToggleStatus}
+            className="rounded-md border border-border px-3 py-2 text-sm font-medium text-surface-foreground transition-colors hover:bg-muted"
+          >
+            Mark {project.status === "active" ? "Inactive" : "Active"}
+          </button>
+        }
+      >
+        <div className="mt-4 flex flex-wrap items-center gap-4">
+          <StatusBadge status={project.status} />
+          {project.code ? <span className="text-sm text-muted-foreground">{project.code}</span> : null}
+        </div>
+        {project.description ? <p className="mt-2 max-w-2xl text-sm text-muted-foreground">{project.description}</p> : null}
+
+        <div className="mt-5 rounded-xl border border-border bg-surface p-5 shadow-sm">
+          <HoursSummary estimatedHours={project.estimatedHours} allocatedHours={allocated} />
+        </div>
+      </PageHeader>
+
+      <HierarchyTree
+        projectId={project.id}
+        onAddPhase={() => setActiveModal({ kind: "phase" })}
+        onAddTask={(phaseId) => setActiveModal({ kind: "task", phaseId })}
+        onAddAction={(taskId) => setActiveModal({ kind: "action", taskId })}
+      />
+
+      {activeModal?.kind === "phase" ? <PhaseFormModal projectId={project.id} onClose={() => setActiveModal(null)} /> : null}
+      {activeModal?.kind === "task" ? <TaskFormModal phaseId={activeModal.phaseId} onClose={() => setActiveModal(null)} /> : null}
+      {activeModal?.kind === "action" ? <ActionFormModal taskId={activeModal.taskId} onClose={() => setActiveModal(null)} /> : null}
+    </div>
+  );
+}
