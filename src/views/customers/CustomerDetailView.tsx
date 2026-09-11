@@ -6,6 +6,7 @@ import PageHeader from "../../app/PageHeader";
 import EmptyState from "../../components/common/EmptyState";
 import StatusFilterTabs from "../../components/common/StatusFilterTabs";
 import { StatusBadge } from "../../components/common/StatusBadge";
+import { useCanEdit } from "../../store/authStore";
 import { filterByStatus, getActiveProjectCountForCustomer, getProjectsForCustomer } from "../../store/selectors/projectSelectors";
 import { useTraxionDemoStore } from "../../store/useTraxionDemoStore";
 import type { StatusFilter } from "../../types/domain";
@@ -17,6 +18,7 @@ export default function CustomerDetailView() {
   const navigate = useNavigate();
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("active");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const canEdit = useCanEdit();
 
   const customer = useTraxionDemoStore((state) => state.getCustomerById(customerId));
   const projects = useTraxionDemoStore((state) => state.projects);
@@ -60,14 +62,16 @@ export default function CustomerDetailView() {
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <StatusFilterTabs value={statusFilter} onChange={setStatusFilter} />
-        <button
-          type="button"
-          onClick={() => setIsCreateOpen(true)}
-          className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover"
-        >
-          <Plus className="h-4 w-4" />
-          New Project for Customer
-        </button>
+        {canEdit ? (
+          <button
+            type="button"
+            onClick={() => setIsCreateOpen(true)}
+            className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover"
+          >
+            <Plus className="h-4 w-4" />
+            New Project for Customer
+          </button>
+        ) : null}
       </div>
 
       {customerProjects.length === 0 ? (
@@ -76,14 +80,16 @@ export default function CustomerDetailView() {
           title="No projects for this customer yet"
           description="Create the first project for this customer to get started."
           action={
-            <button
-              type="button"
-              onClick={() => setIsCreateOpen(true)}
-              className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover"
-            >
-              <Plus className="h-4 w-4" />
-              New Project for Customer
-            </button>
+            canEdit ? (
+              <button
+                type="button"
+                onClick={() => setIsCreateOpen(true)}
+                className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover"
+              >
+                <Plus className="h-4 w-4" />
+                New Project for Customer
+              </button>
+            ) : undefined
           }
         />
       ) : filteredProjects.length === 0 ? (

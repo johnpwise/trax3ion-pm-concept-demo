@@ -5,6 +5,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import PageHeader from "../../app/PageHeader";
 import EmptyState from "../../components/common/EmptyState";
 import StatusFilterTabs from "../../components/common/StatusFilterTabs";
+import { useCanEdit } from "../../store/authStore";
 import { filterByStatus } from "../../store/selectors/projectSelectors";
 import { useTraxionDemoStore } from "../../store/useTraxionDemoStore";
 import type { StatusFilter } from "../../types/domain";
@@ -19,6 +20,7 @@ export default function ProjectsView() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const navigate = useNavigate();
+  const canEdit = useCanEdit();
 
   const projects = useTraxionDemoStore((state) => state.projects);
   const customers = useTraxionDemoStore((state) => state.customers);
@@ -34,14 +36,16 @@ export default function ProjectsView() {
         title="Projects"
         description="View every project across the practice, or narrow by status."
         actions={
-          <button
-            type="button"
-            onClick={() => setIsCreateOpen(true)}
-            className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover"
-          >
-            <Plus className="h-4 w-4" />
-            New Project
-          </button>
+          canEdit ? (
+            <button
+              type="button"
+              onClick={() => setIsCreateOpen(true)}
+              className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover"
+            >
+              <Plus className="h-4 w-4" />
+              New Project
+            </button>
+          ) : undefined
         }
       >
         <div className="mt-4">
@@ -55,14 +59,16 @@ export default function ProjectsView() {
           title="No projects match this filter"
           description="Switch filters to see other projects, or create a new one."
           action={
-            <button
-              type="button"
-              onClick={() => setIsCreateOpen(true)}
-              className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover"
-            >
-              <Plus className="h-4 w-4" />
-              New Project
-            </button>
+            canEdit ? (
+              <button
+                type="button"
+                onClick={() => setIsCreateOpen(true)}
+                className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover"
+              >
+                <Plus className="h-4 w-4" />
+                New Project
+              </button>
+            ) : undefined
           }
         />
       ) : (

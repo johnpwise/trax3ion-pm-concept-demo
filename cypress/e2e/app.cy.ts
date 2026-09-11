@@ -1,7 +1,10 @@
 describe("application preferences", () => {
   it("should toggle dark mode and change theme", () => {
     // Arrange
-    cy.visit("/");
+    cy.visit("/login");
+    cy.get("#login-email").type("pm@trax3ion.demo");
+    cy.get("#login-password").type("trax3ion-pm");
+    cy.get("form").submit();
     cy.get('[data-id="app-shell"]').should("have.class", "bg-background");
 
     // Act

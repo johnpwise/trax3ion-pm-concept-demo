@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { CalendarDays, FolderKanban, LayoutDashboard, Moon, RotateCcw, Sun, Users } from "lucide-react";
+import { CalendarDays, FolderKanban, LayoutDashboard, LogOut, Moon, RotateCcw, Sun, Users } from "lucide-react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 
 import trax3ionLogo from "../assets/images/trax3ion-pm-logo.png";
 import ConfirmDialog from "../components/common/ConfirmDialog";
 import { useToastStore } from "../components/common/toastStore";
 import { useAppStore } from "../store/appStore";
+import { useAuthStore, useCanEdit } from "../store/authStore";
 import { useTraxionDemoStore } from "../store/useTraxionDemoStore";
 
 const NAV_ITEMS = [
@@ -21,6 +22,9 @@ export default function SidebarNav() {
   const toggleDarkMode = useAppStore((state) => state.toggleDarkMode);
   const resetDemoData = useTraxionDemoStore((state) => state.resetDemoData);
   const showToast = useToastStore((state) => state.showToast);
+  const currentUser = useAuthStore((state) => state.currentUser);
+  const logout = useAuthStore((state) => state.logout);
+  const canEdit = useCanEdit();
   const navigate = useNavigate();
 
   const handleConfirmReset = (): void => {
@@ -30,10 +34,15 @@ export default function SidebarNav() {
     showToast("Demo data has been reset to its starting state.");
   };
 
+  const handleLogout = (): void => {
+    logout();
+    navigate("/login");
+  };
+
   return (
     <aside className="flex w-60 shrink-0 flex-col bg-primary-950 text-white/80">
       <Link to="/dashboard" className="flex items-center px-5 py-5">
-        <img src={trax3ionLogo} alt="Trax3ion PM" className="h-7 w-auto" />
+        <img src={trax3ionLogo} alt="Trax3ion PM" className="h-14 w-auto" />
       </Link>
 
       <nav className="flex-1 space-y-1 px-3 py-2" aria-label="Primary">
@@ -62,15 +71,30 @@ export default function SidebarNav() {
           {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           {isDarkMode ? "Light mode" : "Dark mode"}
         </button>
+        {canEdit ? (
+          <button
+            type="button"
+            onClick={() => setIsResetDialogOpen(true)}
+            className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-white/70 transition-colors hover:bg-white/5 hover:text-white"
+          >
+            <RotateCcw className="h-4 w-4" />
+            Reset Demo Data
+          </button>
+        ) : null}
         <button
           type="button"
-          onClick={() => setIsResetDialogOpen(true)}
+          onClick={handleLogout}
           className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-white/70 transition-colors hover:bg-white/5 hover:text-white"
         >
-          <RotateCcw className="h-4 w-4" />
-          Reset Demo Data
+          <LogOut className="h-4 w-4" />
+          Log out
         </button>
-        <p className="px-3 pt-1 text-[11px] leading-snug text-white/40">Concept demo build — no backend or live data connected.</p>
+        {currentUser ? (
+          <p className="px-3 pt-1 text-[11px] leading-snug text-white/40">
+            Signed in as <span className="text-white/60">{currentUser.name}</span> ({currentUser.role === "project-manager" ? "Project Manager" : "User"})
+          </p>
+        ) : null}
+        <p className="px-3 text-[11px] leading-snug text-white/40">Concept demo build — no backend or live data connected.</p>
       </div>
 
       {isResetDialogOpen ? (

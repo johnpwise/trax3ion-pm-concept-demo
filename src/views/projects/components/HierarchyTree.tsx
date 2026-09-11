@@ -8,12 +8,13 @@ import HierarchyRow from "./HierarchyRow";
 
 type HierarchyTreeProps = {
   projectId: string;
+  canEdit: boolean;
   onAddPhase: () => void;
   onAddTask: (phaseId: string) => void;
   onAddAction: (taskId: string) => void;
 };
 
-export default function HierarchyTree({ projectId, onAddPhase, onAddTask, onAddAction }: HierarchyTreeProps) {
+export default function HierarchyTree({ projectId, canEdit, onAddPhase, onAddTask, onAddAction }: HierarchyTreeProps) {
   const phases = useTraxionDemoStore((state) => state.phases);
   const tasks = useTraxionDemoStore((state) => state.tasks);
   const actions = useTraxionDemoStore((state) => state.actions);
@@ -37,14 +38,16 @@ export default function HierarchyTree({ projectId, onAddPhase, onAddTask, onAddA
         title="No phases yet"
         description="Break this project down into Phases, then Tasks and Actions, to allocate its estimated hours."
         action={
-          <button
-            type="button"
-            onClick={onAddPhase}
-            className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover"
-          >
-            <Plus className="h-4 w-4" />
-            Add Phase
-          </button>
+          canEdit ? (
+            <button
+              type="button"
+              onClick={onAddPhase}
+              className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover"
+            >
+              <Plus className="h-4 w-4" />
+              Add Phase
+            </button>
+          ) : undefined
         }
       />
     );
@@ -54,14 +57,16 @@ export default function HierarchyTree({ projectId, onAddPhase, onAddTask, onAddA
     <div className="overflow-hidden rounded-xl border border-border bg-surface shadow-sm">
       <div className="flex items-center justify-between border-b border-border px-4 py-3">
         <p className="text-sm font-medium text-surface-foreground">Phases</p>
-        <button
-          type="button"
-          onClick={onAddPhase}
-          className="inline-flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-xs font-medium text-surface-foreground transition-colors hover:bg-muted"
-        >
-          <Plus className="h-3.5 w-3.5" />
-          Add Phase
-        </button>
+        {canEdit ? (
+          <button
+            type="button"
+            onClick={onAddPhase}
+            className="inline-flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-xs font-medium text-surface-foreground transition-colors hover:bg-muted"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            Add Phase
+          </button>
+        ) : null}
       </div>
 
       <div className="px-4">
@@ -81,7 +86,7 @@ export default function HierarchyTree({ projectId, onAddPhase, onAddTask, onAddA
               isExpanded={!collapsedIds.has(phase.id)}
               onToggleExpand={() => toggle(phase.id)}
               addChildLabel="Add Task"
-              onAddChild={() => onAddTask(phase.id)}
+              onAddChild={canEdit ? () => onAddTask(phase.id) : undefined}
             >
               {phaseTasks.length === 0 ? (
                 <p className="py-3 pl-16 text-sm text-muted-foreground">No tasks yet under this phase.</p>
@@ -102,7 +107,7 @@ export default function HierarchyTree({ projectId, onAddPhase, onAddTask, onAddA
                       isExpanded={!collapsedIds.has(task.id)}
                       onToggleExpand={() => toggle(task.id)}
                       addChildLabel="Add Action"
-                      onAddChild={() => onAddAction(task.id)}
+                      onAddChild={canEdit ? () => onAddAction(task.id) : undefined}
                     >
                       {taskActions.length === 0 ? (
                         <p className="py-3 pl-24 text-sm text-muted-foreground">No actions yet under this task.</p>

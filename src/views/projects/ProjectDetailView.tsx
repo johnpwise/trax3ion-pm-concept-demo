@@ -6,6 +6,7 @@ import EmptyState from "../../components/common/EmptyState";
 import HoursSummary from "../../components/common/HoursSummary";
 import { StatusBadge } from "../../components/common/StatusBadge";
 import { useToastStore } from "../../components/common/toastStore";
+import { useCanEdit } from "../../store/authStore";
 import { getProjectAllocatedHours } from "../../store/selectors/projectSelectors";
 import { useTraxionDemoStore } from "../../store/useTraxionDemoStore";
 import { FolderX } from "lucide-react";
@@ -19,6 +20,7 @@ type ActiveModal = { kind: "phase" } | { kind: "task"; phaseId: string } | { kin
 export default function ProjectDetailView() {
   const { projectId = "" } = useParams();
   const [activeModal, setActiveModal] = useState<ActiveModal>(null);
+  const canEdit = useCanEdit();
 
   const project = useTraxionDemoStore((state) => state.projects.find((item) => item.id === projectId));
   const customer = useTraxionDemoStore((state) => (project ? state.getCustomerById(project.customerId) : undefined));
@@ -61,13 +63,15 @@ export default function ProjectDetailView() {
           { label: project.name },
         ]}
         actions={
-          <button
-            type="button"
-            onClick={handleToggleStatus}
-            className="rounded-md border border-border px-3 py-2 text-sm font-medium text-surface-foreground transition-colors hover:bg-muted"
-          >
-            Mark {project.status === "active" ? "Inactive" : "Active"}
-          </button>
+          canEdit ? (
+            <button
+              type="button"
+              onClick={handleToggleStatus}
+              className="rounded-md border border-border px-3 py-2 text-sm font-medium text-surface-foreground transition-colors hover:bg-muted"
+            >
+              Mark {project.status === "active" ? "Inactive" : "Active"}
+            </button>
+          ) : undefined
         }
       >
         <div className="mt-4 flex flex-wrap items-center gap-4">
@@ -83,6 +87,7 @@ export default function ProjectDetailView() {
 
       <HierarchyTree
         projectId={project.id}
+        canEdit={canEdit}
         onAddPhase={() => setActiveModal({ kind: "phase" })}
         onAddTask={(phaseId) => setActiveModal({ kind: "task", phaseId })}
         onAddAction={(taskId) => setActiveModal({ kind: "action", taskId })}
