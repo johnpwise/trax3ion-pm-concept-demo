@@ -156,3 +156,6 @@ docs/
 *.njsproj
 *.sln
 *.sw?
+
+# Agent Workflow Artifacts
+.agent-workflows/
