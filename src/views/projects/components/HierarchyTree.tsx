@@ -12,9 +12,10 @@ type HierarchyTreeProps = {
   onAddPhase: () => void;
   onAddTask: (phaseId: string) => void;
   onAddAction: (taskId: string) => void;
+  onViewAction: (actionId: string) => void;
 };
 
-export default function HierarchyTree({ projectId, canEdit, onAddPhase, onAddTask, onAddAction }: HierarchyTreeProps) {
+export default function HierarchyTree({ projectId, canEdit, onAddPhase, onAddTask, onAddAction, onViewAction }: HierarchyTreeProps) {
   const phases = useTraxionDemoStore((state) => state.phases);
   const tasks = useTraxionDemoStore((state) => state.tasks);
   const actions = useTraxionDemoStore((state) => state.actions);
@@ -120,6 +121,8 @@ export default function HierarchyTree({ projectId, canEdit, onAddPhase, onAddTas
                             status={action.status}
                             depth={2}
                             estimatedHours={action.estimatedHours}
+                            actualHours={action.actualHours}
+                            onClick={() => onViewAction(action.id)}
                           />
                         ))
                       )}

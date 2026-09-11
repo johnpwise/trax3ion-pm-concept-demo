@@ -1,7 +1,8 @@
 import { ChevronDown, ChevronRight, Plus } from "lucide-react";
-import type { ReactNode } from "react";
+import type { KeyboardEvent, ReactNode } from "react";
 
 import AllocationBar from "../../../components/common/AllocationBar";
+import HoursDifferenceValue from "../../../components/common/HoursDifferenceValue";
 import { StatusBadge } from "../../../components/common/StatusBadge";
 import type { EntityStatus } from "../../../types/domain";
 
@@ -11,12 +12,14 @@ type HierarchyRowProps = {
   status: EntityStatus;
   estimatedHours: number;
   allocatedHours?: number;
+  actualHours?: number;
   depth: 0 | 1 | 2;
   isExpanded?: boolean;
   onToggleExpand?: () => void;
   hasChildren?: boolean;
   addChildLabel?: string;
   onAddChild?: () => void;
+  onClick?: () => void;
   children?: ReactNode;
 };
 
@@ -28,17 +31,33 @@ export default function HierarchyRow({
   status,
   estimatedHours,
   allocatedHours,
+  actualHours,
   depth,
   isExpanded,
   onToggleExpand,
   hasChildren,
   addChildLabel,
   onAddChild,
+  onClick,
   children,
 }: HierarchyRowProps) {
+  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>): void => {
+    if (!onClick) return;
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      onClick();
+    }
+  };
+
   return (
     <div className={depth > 0 ? "border-t border-border" : ""}>
-      <div className={`flex flex-wrap items-center gap-3 py-3 pr-4 ${DEPTH_PADDING[depth]}`}>
+      <div
+        className={`flex flex-wrap items-center gap-3 py-3 pr-4 ${DEPTH_PADDING[depth]} ${onClick ? "cursor-pointer transition-colors hover:bg-muted" : ""}`}
+        role={onClick ? "button" : undefined}
+        tabIndex={onClick ? 0 : undefined}
+        onClick={onClick}
+        onKeyDown={onClick ? handleKeyDown : undefined}
+      >
         {hasChildren !== undefined ? (
           <button
             type="button"
@@ -64,7 +83,24 @@ export default function HierarchyRow({
           {allocatedHours !== undefined ? (
             <AllocationBar estimatedHours={estimatedHours} allocatedHours={allocatedHours} size="sm" />
           ) : (
-            <p className="text-right text-sm text-surface-foreground">{estimatedHours}h</p>
+            <div className="grid grid-cols-3 gap-2 text-right">
+              <div>
+                <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Booked</p>
+                <p className="text-sm text-surface-foreground">{estimatedHours}h</p>
+              </div>
+              {actualHours !== undefined ? (
+                <>
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Actual</p>
+                    <p className="text-sm text-surface-foreground">{actualHours}h</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Diff.</p>
+                    <HoursDifferenceValue estimatedHours={estimatedHours} actualHours={actualHours} />
+                  </div>
+                </>
+              ) : null}
+            </div>
           )}
         </div>
 

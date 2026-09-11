@@ -8,6 +8,7 @@ import {
   getPhaseAllocatedHours,
   getProjectAllocatedHours,
   getTaskAllocatedHours,
+  isNonNegativeInteger,
   isPositiveInteger,
 } from "../selectors/projectSelectors";
 import type { DemoStore } from "../useTraxionDemoStore";
@@ -265,6 +266,10 @@ export const createProjectSlice: StateCreator<DemoStore, [], [], ProjectSlice> =
         const remaining = task.estimatedHours - getTaskAllocatedHours(get().actions, task.id) + action.estimatedHours;
         return { ok: false, error: `Only ${remaining} task hours remain available for allocation.` };
       }
+    }
+
+    if (patch.actualHours !== undefined && !isNonNegativeInteger(patch.actualHours)) {
+      return { ok: false, error: "Actual Hours must be a whole number of zero or more." };
     }
 
     set((state) => ({

@@ -1,7 +1,7 @@
 import type { Action, CalendarEvent, Customer, Phase, Project, Resource, Task } from "../types/domain";
 import { addDays, atTime, getStartOfWeek } from "../views/scheduler/calendar-utils";
 
-export const SEED_VERSION = 1;
+export const SEED_VERSION = 2;
 
 export type DemoSeed = {
   customers: Customer[];
@@ -80,8 +80,8 @@ export function createSeedData(): DemoSeed {
   ];
 
   const actions: Action[] = [
-    { id: "action-x3-scope-session1", taskId: "task-x3-scoping", name: "Scoping Session 1", estimatedHours: 7, status: "active", sortOrder: 1 },
-    { id: "action-x3-writeup", taskId: "task-x3-scoping", name: "Write-up", estimatedHours: 6, status: "active", sortOrder: 2 },
+    { id: "action-x3-scope-session1", taskId: "task-x3-scoping", name: "Scoping Session 1", estimatedHours: 7, actualHours: 5, status: "active", sortOrder: 1 },
+    { id: "action-x3-writeup", taskId: "task-x3-scoping", name: "Write-up", estimatedHours: 6, actualHours: 8, status: "active", sortOrder: 2 },
 
     { id: "action-cb-workshop-prep", taskId: "task-cb-workshops", name: "Workshop Prep", estimatedHours: 4, status: "active", sortOrder: 1 },
     { id: "action-cb-facilitate", taskId: "task-cb-workshops", name: "Facilitate Workshops", estimatedHours: 10, status: "active", sortOrder: 2 },

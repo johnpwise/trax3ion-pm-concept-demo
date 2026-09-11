@@ -45,6 +45,7 @@ export type Action = {
   taskId: string;
   name: string;
   estimatedHours: number;
+  actualHours?: number;
   status: EntityStatus;
   sortOrder: number;
 };

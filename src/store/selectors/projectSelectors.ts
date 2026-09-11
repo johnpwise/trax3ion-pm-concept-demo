@@ -4,6 +4,10 @@ export function isPositiveInteger(value: number): boolean {
   return Number.isInteger(value) && value > 0;
 }
 
+export function isNonNegativeInteger(value: number): boolean {
+  return Number.isInteger(value) && value >= 0;
+}
+
 export function filterByStatus<T extends { status: "active" | "inactive" }>(items: T[], filter: StatusFilter): T[] {
   if (filter === "all") return items;
   return items.filter((item) => item.status === filter);

@@ -10,12 +10,18 @@ import { useCanEdit } from "../../store/authStore";
 import { getProjectAllocatedHours } from "../../store/selectors/projectSelectors";
 import { useTraxionDemoStore } from "../../store/useTraxionDemoStore";
 import { FolderX } from "lucide-react";
+import ActionDetailModal from "./components/ActionDetailModal";
 import ActionFormModal from "./components/ActionFormModal";
 import HierarchyTree from "./components/HierarchyTree";
 import PhaseFormModal from "./components/PhaseFormModal";
 import TaskFormModal from "./components/TaskFormModal";
 
-type ActiveModal = { kind: "phase" } | { kind: "task"; phaseId: string } | { kind: "action"; taskId: string } | null;
+type ActiveModal =
+  | { kind: "phase" }
+  | { kind: "task"; phaseId: string }
+  | { kind: "action"; taskId: string }
+  | { kind: "actionDetail"; actionId: string }
+  | null;
 
 export default function ProjectDetailView() {
   const { projectId = "" } = useParams();
@@ -91,11 +97,13 @@ export default function ProjectDetailView() {
         onAddPhase={() => setActiveModal({ kind: "phase" })}
         onAddTask={(phaseId) => setActiveModal({ kind: "task", phaseId })}
         onAddAction={(taskId) => setActiveModal({ kind: "action", taskId })}
+        onViewAction={(actionId) => setActiveModal({ kind: "actionDetail", actionId })}
       />
 
       {activeModal?.kind === "phase" ? <PhaseFormModal projectId={project.id} onClose={() => setActiveModal(null)} /> : null}
       {activeModal?.kind === "task" ? <TaskFormModal phaseId={activeModal.phaseId} onClose={() => setActiveModal(null)} /> : null}
       {activeModal?.kind === "action" ? <ActionFormModal taskId={activeModal.taskId} onClose={() => setActiveModal(null)} /> : null}
+      {activeModal?.kind === "actionDetail" ? <ActionDetailModal actionId={activeModal.actionId} onClose={() => setActiveModal(null)} /> : null}
     </div>
   );
 }
