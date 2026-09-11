@@ -1,5 +1,16 @@
 import { useState } from "react";
-import { CalendarDays, FolderKanban, LayoutDashboard, LogOut, Moon, RotateCcw, Sun, Users } from "lucide-react";
+import {
+  CalendarDays,
+  ChevronLeft,
+  ChevronRight,
+  FolderKanban,
+  LayoutDashboard,
+  LogOut,
+  Moon,
+  RotateCcw,
+  Sun,
+  Users,
+} from "lucide-react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 
 import trax3ionLogo from "../assets/images/trax3ion-pm-logo.png";
@@ -20,6 +31,8 @@ export default function SidebarNav() {
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
   const isDarkMode = useAppStore((state) => state.isDarkMode);
   const toggleDarkMode = useAppStore((state) => state.toggleDarkMode);
+  const isCollapsed = useAppStore((state) => state.isSidebarCollapsed);
+  const toggleSidebarCollapsed = useAppStore((state) => state.toggleSidebarCollapsed);
   const resetDemoData = useTraxionDemoStore((state) => state.resetDemoData);
   const showToast = useToastStore((state) => state.showToast);
   const currentUser = useAuthStore((state) => state.currentUser);
@@ -40,9 +53,33 @@ export default function SidebarNav() {
   };
 
   return (
-    <aside className="flex w-60 shrink-0 flex-col bg-primary-950 text-white/80">
-      <Link to="/dashboard" className="flex items-center px-5 py-5">
-        <img src={trax3ionLogo} alt="Trax3ion PM" className="h-14 w-auto" />
+    <aside
+      className={`relative flex shrink-0 flex-col bg-primary-950 text-white/80 transition-[width] duration-200 ${
+        isCollapsed ? "w-[4.5rem]" : "w-60"
+      }`}
+    >
+      <button
+        type="button"
+        onClick={toggleSidebarCollapsed}
+        title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+        aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+        className="absolute -right-3 top-6 flex h-6 w-6 items-center justify-center rounded-full border border-white/10 bg-primary-950 text-white/70 shadow-sm transition-colors hover:bg-white/10 hover:text-white"
+      >
+        {isCollapsed ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronLeft className="h-3.5 w-3.5" />}
+      </button>
+
+      <Link
+        to="/dashboard"
+        title={isCollapsed ? "Trax3ion PM" : undefined}
+        className={`flex items-center overflow-hidden px-5 py-5 ${isCollapsed ? "justify-center px-0" : ""}`}
+      >
+        {isCollapsed ? (
+          <span className="block h-10 w-10 overflow-hidden">
+            <img src={trax3ionLogo} alt="Trax3ion PM" className="h-10 w-auto max-w-none object-cover object-left" />
+          </span>
+        ) : (
+          <img src={trax3ionLogo} alt="Trax3ion PM" className="h-14 w-auto" />
+        )}
       </Link>
 
       <nav className="flex-1 space-y-1 px-3 py-2" aria-label="Primary">
@@ -50,14 +87,15 @@ export default function SidebarNav() {
           <NavLink
             key={to}
             to={to}
+            title={isCollapsed ? label : undefined}
             className={({ isActive }) =>
               `flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                isActive ? "bg-white/10 text-white" : "text-white/70 hover:bg-white/5 hover:text-white"
-              }`
+                isCollapsed ? "justify-center" : ""
+              } ${isActive ? "bg-white/10 text-white" : "text-white/70 hover:bg-white/5 hover:text-white"}`
             }
           >
-            <Icon className="h-4 w-4" />
-            {label}
+            <Icon className="h-4 w-4 shrink-0" />
+            {isCollapsed ? <span className="sr-only">{label}</span> : label}
           </NavLink>
         ))}
       </nav>
@@ -66,35 +104,46 @@ export default function SidebarNav() {
         <button
           type="button"
           onClick={toggleDarkMode}
-          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-white/70 transition-colors hover:bg-white/5 hover:text-white"
+          title={isCollapsed ? (isDarkMode ? "Light mode" : "Dark mode") : undefined}
+          className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-white/70 transition-colors hover:bg-white/5 hover:text-white ${
+            isCollapsed ? "justify-center" : ""
+          }`}
         >
-          {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-          {isDarkMode ? "Light mode" : "Dark mode"}
+          {isDarkMode ? <Sun className="h-4 w-4 shrink-0" /> : <Moon className="h-4 w-4 shrink-0" />}
+          {isCollapsed ? null : isDarkMode ? "Light mode" : "Dark mode"}
         </button>
         {canEdit ? (
           <button
             type="button"
             onClick={() => setIsResetDialogOpen(true)}
-            className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-white/70 transition-colors hover:bg-white/5 hover:text-white"
+            title={isCollapsed ? "Reset Demo Data" : undefined}
+            className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-white/70 transition-colors hover:bg-white/5 hover:text-white ${
+              isCollapsed ? "justify-center" : ""
+            }`}
           >
-            <RotateCcw className="h-4 w-4" />
-            Reset Demo Data
+            <RotateCcw className="h-4 w-4 shrink-0" />
+            {isCollapsed ? null : "Reset Demo Data"}
           </button>
         ) : null}
         <button
           type="button"
           onClick={handleLogout}
-          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-white/70 transition-colors hover:bg-white/5 hover:text-white"
+          title={isCollapsed ? "Log out" : undefined}
+          className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-white/70 transition-colors hover:bg-white/5 hover:text-white ${
+            isCollapsed ? "justify-center" : ""
+          }`}
         >
-          <LogOut className="h-4 w-4" />
-          Log out
+          <LogOut className="h-4 w-4 shrink-0" />
+          {isCollapsed ? null : "Log out"}
         </button>
-        {currentUser ? (
+        {!isCollapsed && currentUser ? (
           <p className="px-3 pt-1 text-[11px] leading-snug text-white/40">
             Signed in as <span className="text-white/60">{currentUser.name}</span> ({currentUser.role === "project-manager" ? "Project Manager" : "User"})
           </p>
         ) : null}
-        <p className="px-3 text-[11px] leading-snug text-white/40">Concept demo build — no backend or live data connected.</p>
+        {!isCollapsed ? (
+          <p className="px-3 text-[11px] leading-snug text-white/40">Concept demo build — no backend or live data connected.</p>
+        ) : null}
       </div>
 
       {isResetDialogOpen ? (

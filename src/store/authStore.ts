@@ -8,14 +8,14 @@ type DemoCredential = AuthUser & { password: string };
 const DEMO_USERS: DemoCredential[] = [
   {
     id: "pm-demo",
-    name: "Jordan Blake",
+    name: "Maya Lad",
     email: "pm@trax3ion.demo",
     password: "trax3ion-pm",
     role: "project-manager",
   },
   {
     id: "user-demo",
-    name: "Sam Rivera",
+    name: "Graham Gibbon",
     email: "user@trax3ion.demo",
     password: "trax3ion-user",
     role: "user",
