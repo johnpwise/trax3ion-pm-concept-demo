@@ -7,8 +7,8 @@ import { useTraxionDemoStore } from "../../store/useTraxionDemoStore";
 import type { CalendarEvent } from "../../types/domain";
 import CalendarEventDetails from "./components/CalendarEventDetails";
 import CalendarLegend from "./components/CalendarLegend";
+import ResourceCalendarBoard from "./components/ResourceCalendarBoard";
 import ResourcePicker from "./components/ResourcePicker";
-import ResourceWeekGrid from "./components/ResourceWeekGrid";
 import WeekNavigator from "./components/WeekNavigator";
 
 export default function SchedulerView() {
@@ -53,7 +53,7 @@ export default function SchedulerView() {
         {selectedResources.length === 0 ? (
           <EmptyState icon={CalendarX2} title="No Resources selected" description="Select at least one Resource from the list to view their availability." />
         ) : (
-          <ResourceWeekGrid resources={selectedResources} calendarEvents={calendarEvents} weekStart={weekStart} onEventClick={setSelectedEvent} />
+          <ResourceCalendarBoard resources={selectedResources} calendarEvents={calendarEvents} weekStart={weekStart} onEventClick={setSelectedEvent} />
         )}
       </div>
 
