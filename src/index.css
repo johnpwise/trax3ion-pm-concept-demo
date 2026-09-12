@@ -1,0 +1,8 @@
+@import "tailwindcss";
+@import "../node_modules/preline/css/themes/theme.css";
+@import "../node_modules/preline/css/themes/harvest.css";
+@import "../node_modules/preline/css/themes/retro.css";
+@import "../node_modules/preline/css/themes/ocean.css";
+@source "../node_modules/preline/dist/*.js";
+@plugin "@tailwindcss/forms";
+@custom-variant dark (&:where(.dark, .dark *));
