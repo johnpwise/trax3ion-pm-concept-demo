@@ -50,12 +50,12 @@ export default function AppShell({ children }: { children: ReactNode }) {
 
       <div className="min-w-0 flex-1 overflow-y-auto">
         {!isDesktopViewport ? (
-          <div className="flex items-center gap-3 border-b border-border bg-surface px-4 py-2">
+          <div className="flex items-center gap-3 border-b border-border bg-primary-950 px-4 py-2">
             <button
               type="button"
               onClick={openMobileNav}
               aria-label="Open navigation"
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted/40"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-white/80 transition-colors hover:bg-white/10 hover:text-white"
             >
               <Menu className="h-5 w-5" />
             </button>
