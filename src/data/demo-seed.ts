@@ -1,7 +1,10 @@
 import type { Action, CalendarEvent, Customer, Phase, Project, Resource, Task } from "../types/domain";
-import { addDays, atTime, getStartOfWeek } from "../views/scheduler/calendar-utils";
+import { addDays, atTime } from "../views/scheduler/calendar-utils";
 
-export const SEED_VERSION = 3;
+export const SEED_VERSION = 5;
+
+/** Fixed anchor so the demo's seeded bookings always land on the same real calendar dates (Monday 14 Sep 2026). */
+export const SEED_START_DATE = new Date(2026, 8, 14);
 
 export type DemoSeed = {
   customers: Customer[];
@@ -97,8 +100,10 @@ export function createSeedData(): DemoSeed {
     { id: "res-ragini", name: "Ragini Mulay", role: "Developer", status: "active" },
   ];
 
-  const w0 = getStartOfWeek(new Date());
+  const w0 = SEED_START_DATE;
   const w1 = addDays(w0, 7);
+  const w2 = addDays(w0, 14);
+  const w3 = addDays(w0, 21);
   const day = (week: Date, offset: number) => addDays(week, offset);
 
   let eventCounter = 0;
@@ -142,6 +147,32 @@ export function createSeedData(): DemoSeed {
 
     // res-kim — mostly free
     event({ resourceId: "res-kim", title: "Internal Standup", start: iso(atTime(day(w0, 2), 9)), end: iso(atTime(day(w0, 2), 9, 30)), source: "outlook" }),
+
+    // --- Weeks 3 and 4 (w2, w3) — deliberately sparser than w0/w1, leaving clear gaps ---
+    // so a PM can demonstrate assigning a Resource against a Task/Action without hitting conflicts.
+
+    // res-maya — one light touch, otherwise fully open
+    event({ resourceId: "res-maya", title: "Client Check-in — X3 Implementation", start: iso(atTime(day(w2, 1), 13)), end: iso(atTime(day(w2, 1), 14)), source: "trax3ion", customerId: "cust-acme", projectId: "proj-x3-impl" }),
+
+    // res-graham — busy early in w2, then fully open for the rest of w2 and all of w3
+    event({ resourceId: "res-graham", title: "Core Banking Platform Upgrade", start: iso(atTime(day(w2, 0), 9)), end: iso(atTime(day(w2, 0), 17)), source: "trax3ion", customerId: "cust-meridian", projectId: "proj-core-bank" }),
+    event({ resourceId: "res-graham", title: "Regulatory Reporting Enhancement", start: iso(atTime(day(w2, 1), 9)), end: iso(atTime(day(w2, 1), 12)), source: "trax3ion", customerId: "cust-meridian", projectId: "proj-reg-report" }),
+
+    // res-naomi — a booking and a commitment in w2, one booking in w3, rest open
+    event({ resourceId: "res-naomi", title: "X3 Implementation — Scoping", start: iso(atTime(day(w2, 0), 9)), end: iso(atTime(day(w2, 0), 12)), source: "trax3ion", customerId: "cust-acme", projectId: "proj-x3-impl" }),
+    event({ resourceId: "res-naomi", title: "Teams Meeting", start: iso(atTime(day(w2, 2), 10)), end: iso(atTime(day(w2, 2), 11)), source: "outlook" }),
+    event({ resourceId: "res-naomi", title: "Warehouse Automation Phase 2", start: iso(atTime(day(w3, 1), 9)), end: iso(atTime(day(w3, 1), 13)), source: "trax3ion", customerId: "cust-acme", projectId: "proj-wh-auto2" }),
+
+    // res-alfred — a single day of annual leave in w2, a booking in w3, rest open
+    event({ resourceId: "res-alfred", title: "Annual Leave", start: iso(atTime(day(w2, 0), 9)), end: iso(atTime(day(w2, 0), 17)), source: "outlook" }),
+    event({ resourceId: "res-alfred", title: "Claims Automation", start: iso(atTime(day(w3, 3), 9)), end: iso(atTime(day(w3, 3), 12)), source: "trax3ion", customerId: "cust-blueharbor", projectId: "proj-claims-auto" }),
+
+    // res-kim — mostly free across both weeks, one meeting and one booking
+    event({ resourceId: "res-kim", title: "Internal Standup", start: iso(atTime(day(w2, 2), 9)), end: iso(atTime(day(w2, 2), 9, 30)), source: "outlook" }),
+    event({ resourceId: "res-kim", title: "Grid Analytics Dashboard", start: iso(atTime(day(w2, 3), 13)), end: iso(atTime(day(w2, 3), 16)), source: "trax3ion", customerId: "cust-orion", projectId: "proj-grid-analytics" }),
+
+    // res-ragini — otherwise fully unbooked; one booking to keep her calendar realistic
+    event({ resourceId: "res-ragini", title: "Fleet Tracking Rollout", start: iso(atTime(day(w2, 1), 9)), end: iso(atTime(day(w2, 1), 12)), source: "trax3ion", customerId: "cust-northwind", projectId: "proj-fleet-track" }),
   ];
 
   return { customers, projects, phases, tasks, actions, resources, calendarEvents };

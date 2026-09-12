@@ -1,10 +1,11 @@
-import { ChevronDown, ChevronRight, Plus } from "lucide-react";
+import { ChevronDown, ChevronRight, Plus, TriangleAlert } from "lucide-react";
 import type { KeyboardEvent, ReactNode } from "react";
 
 import AllocationBar from "../../../components/common/AllocationBar";
 import HoursDifferenceValue from "../../../components/common/HoursDifferenceValue";
 import ResourceSelect from "../../../components/common/ResourceSelect";
 import ScheduledDateInput from "../../../components/common/ScheduledDateInput";
+import ScheduledTimeInput from "../../../components/common/ScheduledTimeInput";
 import { StatusBadge } from "../../../components/common/StatusBadge";
 import type { EntityStatus, Resource } from "../../../types/domain";
 
@@ -20,7 +21,10 @@ type HierarchyRowProps = {
   onResourceChange?: (resourceId: string | undefined) => void;
   scheduledDate?: string;
   onScheduledDateChange?: (date: string | undefined) => void;
+  scheduledTime?: string;
+  onScheduledTimeChange?: (time: string | undefined) => void;
   depth: 0 | 1 | 2;
+  hasConflict?: boolean;
   isExpanded?: boolean;
   onToggleExpand?: () => void;
   hasChildren?: boolean;
@@ -44,7 +48,10 @@ export default function HierarchyRow({
   onResourceChange,
   scheduledDate,
   onScheduledDateChange,
+  scheduledTime,
+  onScheduledTimeChange,
   depth,
+  hasConflict,
   isExpanded,
   onToggleExpand,
   hasChildren,
@@ -64,7 +71,9 @@ export default function HierarchyRow({
   return (
     <div className={depth > 0 ? "border-t border-border" : ""}>
       <div
-        className={`flex flex-wrap items-center gap-3 py-3 pr-4 ${DEPTH_PADDING[depth]} ${onClick ? "cursor-pointer transition-colors hover:bg-muted" : ""}`}
+        className={`flex flex-wrap items-center gap-3 py-3 pr-4 ${DEPTH_PADDING[depth]} ${
+          hasConflict ? "border-l-2 border-l-destructive bg-destructive/10" : ""
+        } ${onClick ? `cursor-pointer transition-colors ${hasConflict ? "hover:bg-destructive/15" : "hover:bg-muted"}` : ""}`}
         role={onClick ? "button" : undefined}
         tabIndex={onClick ? 0 : undefined}
         onClick={onClick}
@@ -87,6 +96,12 @@ export default function HierarchyRow({
           <div className="flex items-center gap-2">
             <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{kind}</span>
             <StatusBadge status={status} />
+            {hasConflict ? (
+              <span className="inline-flex items-center gap-1 rounded-full border border-destructive/40 bg-destructive/10 px-2 py-0.5 text-[11px] font-medium text-destructive">
+                <TriangleAlert className="h-3 w-3" />
+                Conflict
+              </span>
+            ) : null}
           </div>
           <p className="mt-0.5 text-sm font-medium text-surface-foreground">{name}</p>
         </div>
@@ -95,6 +110,9 @@ export default function HierarchyRow({
           <>
             <div className="w-full shrink-0 sm:w-36">
               <ScheduledDateInput value={scheduledDate} onChange={onScheduledDateChange} />
+            </div>
+            <div className="w-full shrink-0 sm:w-28">
+              <ScheduledTimeInput value={scheduledTime} onChange={onScheduledTimeChange} />
             </div>
             <div className="w-full shrink-0 sm:w-44">
               <ResourceSelect resources={resources} value={resourceId} onChange={onResourceChange} placeholder="Unassigned" />

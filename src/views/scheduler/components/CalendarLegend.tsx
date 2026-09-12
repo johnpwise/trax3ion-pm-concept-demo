@@ -6,6 +6,10 @@ export default function CalendarLegend() {
         Trax3ion Project Booking
       </span>
       <span className="inline-flex items-center gap-1.5">
+        <span className="h-2.5 w-2.5 rounded-sm border-2 border-dashed border-amber-500/60 bg-amber-500/10" />
+        Provisional Booking (pending publish)
+      </span>
+      <span className="inline-flex items-center gap-1.5">
         <span className="h-2.5 w-2.5 rounded-sm border-2 border-muted-foreground bg-transparent" />
         Existing Calendar Commitment
       </span>

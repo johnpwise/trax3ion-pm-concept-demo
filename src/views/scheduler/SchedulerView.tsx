@@ -3,6 +3,7 @@ import { useState } from "react";
 
 import PageHeader from "../../app/PageHeader";
 import EmptyState from "../../components/common/EmptyState";
+import { useToastStore } from "../../components/common/toastStore";
 import { useTraxionDemoStore } from "../../store/useTraxionDemoStore";
 import type { CalendarEvent } from "../../types/domain";
 import CalendarEventDetails from "./components/CalendarEventDetails";
@@ -25,6 +26,8 @@ export default function SchedulerView() {
   const customers = useTraxionDemoStore((state) => state.customers);
   const projects = useTraxionDemoStore((state) => state.projects);
   const actions = useTraxionDemoStore((state) => state.actions);
+  const discardBooking = useTraxionDemoStore((state) => state.discardBooking);
+  const showToast = useToastStore((state) => state.showToast);
 
   const activeResources = resources
     .filter((resource) => resource.status === "active")
@@ -37,6 +40,12 @@ export default function SchedulerView() {
   const selectedEventCustomer = selectedEvent?.customerId ? customers.find((customer) => customer.id === selectedEvent.customerId) : undefined;
   const selectedEventProject = selectedEvent?.projectId ? projects.find((project) => project.id === selectedEvent.projectId) : undefined;
   const selectedEventAction = selectedEvent?.actionId ? actions.find((action) => action.id === selectedEvent.actionId) : undefined;
+
+  const handleDiscard = (eventId: string): void => {
+    discardBooking(eventId);
+    setSelectedEvent(null);
+    showToast("Booking discarded.");
+  };
 
   return (
     <div>
@@ -69,6 +78,7 @@ export default function SchedulerView() {
           projectName={selectedEventProject?.name}
           actionName={selectedEventAction?.name}
           onClose={() => setSelectedEvent(null)}
+          onDiscard={selectedEvent.status === "provisional" ? () => handleDiscard(selectedEvent.id) : undefined}
         />
       ) : null}
     </div>
