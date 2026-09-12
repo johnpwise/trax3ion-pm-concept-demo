@@ -25,4 +25,23 @@ describe("useAppStore", () => {
     expect(document.documentElement.dataset.theme).toBe("theme-ocean");
     expect(localStorage.getItem("isDarkMode")).toBe("true");
   });
+
+  it("should open and close the mobile nav without persisting to localStorage", () => {
+    // Arrange
+    const store = useAppStore.getState();
+    expect(useAppStore.getState().isMobileNavOpen).toBe(false);
+
+    // Act
+    store.openMobileNav();
+
+    // Assert
+    expect(useAppStore.getState().isMobileNavOpen).toBe(true);
+    expect(localStorage.getItem("isMobileNavOpen")).toBeNull();
+
+    // Act
+    store.closeMobileNav();
+
+    // Assert
+    expect(useAppStore.getState().isMobileNavOpen).toBe(false);
+  });
 });
