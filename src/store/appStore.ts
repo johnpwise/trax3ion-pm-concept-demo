@@ -4,9 +4,12 @@ type AppState = {
   isDarkMode: boolean;
   theme: string;
   isSidebarCollapsed: boolean;
+  isMobileNavOpen: boolean;
   toggleDarkMode: () => void;
   setTheme: (theme: string) => void;
   toggleSidebarCollapsed: () => void;
+  openMobileNav: () => void;
+  closeMobileNav: () => void;
 };
 
 const applyPreferences = (isDarkMode: boolean, theme: string): void => {
@@ -26,6 +29,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   isDarkMode: storedDarkMode,
   theme: storedTheme,
   isSidebarCollapsed: storedSidebarCollapsed,
+  isMobileNavOpen: false,
   toggleDarkMode: () => {
     const isDarkMode = !get().isDarkMode;
     applyPreferences(isDarkMode, get().theme);
@@ -40,4 +44,6 @@ export const useAppStore = create<AppState>((set, get) => ({
     localStorage.setItem("isSidebarCollapsed", String(isSidebarCollapsed));
     set({ isSidebarCollapsed });
   },
+  openMobileNav: () => set({ isMobileNavOpen: true }),
+  closeMobileNav: () => set({ isMobileNavOpen: false }),
 }));
