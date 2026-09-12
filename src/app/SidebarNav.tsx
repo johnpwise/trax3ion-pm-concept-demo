@@ -7,6 +7,7 @@ import {
   LayoutDashboard,
   LogOut,
   Moon,
+  Palette,
   RotateCcw,
   Sun,
   Users,
@@ -27,6 +28,13 @@ const NAV_ITEMS = [
   { to: "/scheduler", label: "Scheduler", icon: CalendarDays },
 ] as const;
 
+const THEME_ORDER = [
+  { label: "Default", value: "theme" },
+  { label: "Harvest", value: "theme-harvest" },
+  { label: "Retro", value: "theme-retro" },
+  { label: "Ocean", value: "theme-ocean" },
+] as const;
+
 type SidebarNavProps = {
   variant?: "desktop" | "mobile";
   onNavigate?: () => void;
@@ -37,6 +45,8 @@ export default function SidebarNav({ variant = "desktop", onNavigate }: SidebarN
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
   const isDarkMode = useAppStore((state) => state.isDarkMode);
   const toggleDarkMode = useAppStore((state) => state.toggleDarkMode);
+  const theme = useAppStore((state) => state.theme);
+  const setTheme = useAppStore((state) => state.setTheme);
   const storedIsCollapsed = useAppStore((state) => state.isSidebarCollapsed);
   const toggleSidebarCollapsed = useAppStore((state) => state.toggleSidebarCollapsed);
   const isCollapsed = isMobile ? false : storedIsCollapsed;
@@ -57,6 +67,13 @@ export default function SidebarNav({ variant = "desktop", onNavigate }: SidebarN
   const handleLogout = (): void => {
     logout();
     navigate("/login");
+  };
+
+  const currentThemeIndex = THEME_ORDER.findIndex((option) => option.value === theme);
+  const nextTheme = THEME_ORDER[(currentThemeIndex + 1) % THEME_ORDER.length];
+
+  const handleCycleTheme = (): void => {
+    setTheme(nextTheme.value);
   };
 
   return (
@@ -122,6 +139,17 @@ export default function SidebarNav({ variant = "desktop", onNavigate }: SidebarN
         >
           {isDarkMode ? <Sun className="h-4 w-4 shrink-0" /> : <Moon className="h-4 w-4 shrink-0" />}
           {isCollapsed ? null : isDarkMode ? "Light mode" : "Dark mode"}
+        </button>
+        <button
+          type="button"
+          onClick={handleCycleTheme}
+          title={isCollapsed ? `Switch to ${nextTheme.label} theme` : undefined}
+          className={`flex w-full items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-white/70 transition-colors hover:bg-white/5 hover:text-white ${
+            isCollapsed ? "justify-center" : ""
+          }`}
+        >
+          <Palette className="h-4 w-4 shrink-0" />
+          {isCollapsed ? null : `Theme: ${THEME_ORDER[currentThemeIndex]?.label ?? "Default"}`}
         </button>
         {canEdit ? (
           <button
