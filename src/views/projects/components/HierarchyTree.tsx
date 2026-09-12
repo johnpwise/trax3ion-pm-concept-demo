@@ -5,6 +5,7 @@ import EmptyState from "../../../components/common/EmptyState";
 import { formatScheduledDate } from "../../../components/common/scheduledDate";
 import { useToastStore } from "../../../components/common/toastStore";
 import { getPhaseTasks, getProjectPhases, getTaskActions, getPhaseAllocatedHours, getTaskAllocatedHours } from "../../../store/selectors/projectSelectors";
+import { getActionConflicts } from "../../../store/selectors/schedulerSelectors";
 import { useTraxionDemoStore } from "../../../store/useTraxionDemoStore";
 import HierarchyRow from "./HierarchyRow";
 
@@ -22,6 +23,7 @@ export default function HierarchyTree({ projectId, canEdit, onAddPhase, onAddTas
   const tasks = useTraxionDemoStore((state) => state.tasks);
   const actions = useTraxionDemoStore((state) => state.actions);
   const resources = useTraxionDemoStore((state) => state.resources);
+  const calendarEvents = useTraxionDemoStore((state) => state.calendarEvents);
   const updateAction = useTraxionDemoStore((state) => state.updateAction);
   const syncActionBooking = useTraxionDemoStore((state) => state.syncActionBooking);
   const showToast = useToastStore((state) => state.showToast);
@@ -79,6 +81,9 @@ export default function HierarchyTree({ projectId, canEdit, onAddPhase, onAddTas
       <div className="px-4">
         {projectPhases.map((phase) => {
           const phaseTasks = getPhaseTasks(tasks, phase.id);
+          const phaseHasConflict = phaseTasks.some((task) =>
+            getTaskActions(actions, task.id).some((action) => getActionConflicts(action, calendarEvents).length > 0),
+          );
 
           return (
             <HierarchyRow
@@ -89,6 +94,7 @@ export default function HierarchyTree({ projectId, canEdit, onAddPhase, onAddTas
               depth={0}
               estimatedHours={phase.estimatedHours}
               allocatedHours={getPhaseAllocatedHours(tasks, phase.id)}
+              hasConflict={phaseHasConflict}
               hasChildren
               isExpanded={!collapsedIds.has(phase.id)}
               onToggleExpand={() => toggle(phase.id)}
@@ -100,6 +106,7 @@ export default function HierarchyTree({ projectId, canEdit, onAddPhase, onAddTas
               ) : (
                 phaseTasks.map((task) => {
                   const taskActions = getTaskActions(actions, task.id);
+                  const taskHasConflict = taskActions.some((action) => getActionConflicts(action, calendarEvents).length > 0);
 
                   return (
                     <HierarchyRow
@@ -110,6 +117,7 @@ export default function HierarchyTree({ projectId, canEdit, onAddPhase, onAddTas
                       depth={1}
                       estimatedHours={task.estimatedHours}
                       allocatedHours={getTaskAllocatedHours(actions, task.id)}
+                      hasConflict={taskHasConflict}
                       hasChildren
                       isExpanded={!collapsedIds.has(task.id)}
                       onToggleExpand={() => toggle(task.id)}
@@ -128,6 +136,7 @@ export default function HierarchyTree({ projectId, canEdit, onAddPhase, onAddTas
                             depth={2}
                             estimatedHours={action.estimatedHours}
                             actualHours={action.actualHours}
+                            hasConflict={getActionConflicts(action, calendarEvents).length > 0}
                             resourceId={action.resourceId}
                             resources={resources}
                             onResourceChange={

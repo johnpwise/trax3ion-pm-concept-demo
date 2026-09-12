@@ -5,9 +5,9 @@ import HoursDifferenceValue from "../../../components/common/HoursDifferenceValu
 import Modal from "../../../components/common/Modal";
 import { StatusBadge } from "../../../components/common/StatusBadge";
 import { useToastStore } from "../../../components/common/toastStore";
-import { getBookingForAction } from "../../../store/selectors/schedulerSelectors";
+import { getActionConflicts, getBookingForAction } from "../../../store/selectors/schedulerSelectors";
 import { useTraxionDemoStore } from "../../../store/useTraxionDemoStore";
-import { findAvailableSlots, findConflicts, type TimeWindow } from "../../scheduler/availability";
+import { findAvailableSlots, type TimeWindow } from "../../scheduler/availability";
 import { getVisibleHourRange } from "../../scheduler/calendar-grid";
 import { formatEventDate, formatEventTime, parseLocalDate, toDateInputValue, toTimeInputValue } from "../../scheduler/calendar-utils";
 import ResourceCalendarPane from "../../scheduler/components/ResourceCalendarPane";
@@ -45,7 +45,7 @@ export default function ActionDetailModal({ actionId, onClose }: ActionDetailMod
   const range = getVisibleHourRange(resourceEvents);
   const booking = getBookingForAction(action.id, calendarEvents);
   const scheduledDay = action.scheduledDate ? parseLocalDate(action.scheduledDate) : new Date();
-  const conflicts = resource && booking ? findConflicts({ start: booking.start, end: booking.end }, resource.id, calendarEvents, booking.id) : [];
+  const conflicts = getActionConflicts(action, calendarEvents);
   const suggestions: TimeWindow[] = resource ? findAvailableSlots(scheduledDay, action.estimatedHours, resource.id, calendarEvents) : [];
 
   const bookingStatusLabel = !booking ? "Not yet scheduled" : booking.status === "provisional" ? "Provisional — pending publish" : "Published";
