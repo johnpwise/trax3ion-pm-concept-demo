@@ -112,7 +112,7 @@ export default function ActionDetailModal({ actionId, onClose }: ActionDetailMod
 
             {action.scheduledDate && action.scheduledTime ? (
               <div className="mb-3 overflow-x-auto">
-                <ResourceCalendarPane resource={resource} days={[scheduledDay]} events={resourceEvents} range={range} onEventClick={() => undefined} />
+                <ResourceCalendarPane resource={resource} days={[scheduledDay]} events={resourceEvents} range={range} onEventClick={() => undefined} isDesktopViewport />
               </div>
             ) : (
               <p className="mb-3 text-sm text-muted-foreground">Pick a date and time in the hierarchy row to preview this booking against {resource.name}&apos;s calendar.</p>

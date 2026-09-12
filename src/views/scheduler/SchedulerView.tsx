@@ -4,16 +4,24 @@ import { useState } from "react";
 import PageHeader from "../../app/PageHeader";
 import EmptyState from "../../components/common/EmptyState";
 import { useToastStore } from "../../components/common/toastStore";
+import { useMediaQuery } from "../../lib/useMediaQuery";
 import { useTraxionDemoStore } from "../../store/useTraxionDemoStore";
 import type { CalendarEvent } from "../../types/domain";
+import { addDays, getWeekdayIndex } from "./calendar-utils";
 import CalendarEventDetails from "./components/CalendarEventDetails";
 import CalendarLegend from "./components/CalendarLegend";
+import DayNavigator from "./components/DayNavigator";
 import ResourceCalendarBoard from "./components/ResourceCalendarBoard";
 import ResourcePicker from "./components/ResourcePicker";
 import WeekNavigator from "./components/WeekNavigator";
 
+const LAST_WEEKDAY_INDEX = 4;
+
 export default function SchedulerView() {
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
+  const [selectedDayIndex, setSelectedDayIndex] = useState(() => getWeekdayIndex(new Date()));
+
+  const isDesktopViewport = useMediaQuery("(min-width: 768px)");
 
   const resources = useTraxionDemoStore((state) => state.resources);
   const calendarEvents = useTraxionDemoStore((state) => state.calendarEvents);
@@ -35,6 +43,30 @@ export default function SchedulerView() {
 
   const selectedResources = activeResources.filter((resource) => selectedResourceIds.includes(resource.id));
   const weekStart = new Date(visibleWeekStart);
+  const visibleDay = addDays(weekStart, selectedDayIndex);
+
+  const goToPreviousDay = (): void => {
+    if (selectedDayIndex > 0) {
+      setSelectedDayIndex(selectedDayIndex - 1);
+      return;
+    }
+    goToPreviousWeek();
+    setSelectedDayIndex(LAST_WEEKDAY_INDEX);
+  };
+
+  const goToNextDay = (): void => {
+    if (selectedDayIndex < LAST_WEEKDAY_INDEX) {
+      setSelectedDayIndex(selectedDayIndex + 1);
+      return;
+    }
+    goToNextWeek();
+    setSelectedDayIndex(0);
+  };
+
+  const goToTodayDay = (): void => {
+    goToCurrentWeek();
+    setSelectedDayIndex(getWeekdayIndex(new Date()));
+  };
 
   const selectedEventResource = selectedEvent ? resources.find((resource) => resource.id === selectedEvent.resourceId) : undefined;
   const selectedEventCustomer = selectedEvent?.customerId ? customers.find((customer) => customer.id === selectedEvent.customerId) : undefined;
@@ -51,7 +83,11 @@ export default function SchedulerView() {
     <div>
       <PageHeader title="Scheduler" description="Compare your calendar alongside selected Resources for the week.">
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-          <WeekNavigator weekStart={weekStart} onPrevious={goToPreviousWeek} onNext={goToNextWeek} onToday={goToCurrentWeek} />
+          {isDesktopViewport ? (
+            <WeekNavigator weekStart={weekStart} onPrevious={goToPreviousWeek} onNext={goToNextWeek} onToday={goToCurrentWeek} />
+          ) : (
+            <DayNavigator day={visibleDay} onPrevious={goToPreviousDay} onNext={goToNextDay} onToday={goToTodayDay} />
+          )}
           <CalendarLegend />
         </div>
       </PageHeader>
@@ -62,7 +98,13 @@ export default function SchedulerView() {
         {selectedResources.length === 0 ? (
           <EmptyState icon={CalendarX2} title="No Resources selected" description="Select at least one Resource from the list to view their availability." />
         ) : (
-          <ResourceCalendarBoard resources={selectedResources} calendarEvents={calendarEvents} weekStart={weekStart} onEventClick={setSelectedEvent} />
+          <ResourceCalendarBoard
+            resources={selectedResources}
+            calendarEvents={calendarEvents}
+            weekStart={weekStart}
+            visibleDay={visibleDay}
+            onEventClick={setSelectedEvent}
+          />
         )}
       </div>
 

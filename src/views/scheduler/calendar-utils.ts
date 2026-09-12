@@ -78,9 +78,19 @@ export function formatEventTime(startIso: string, endIso: string): string {
   return `${format(startIso)}–${format(endIso)}`;
 }
 
+export function formatDayLabel(date: Date): string {
+  return `${WEEKDAYS[(date.getDay() + 6) % 7]} ${date.getDate()} ${MONTH_LABELS[date.getMonth()]} ${date.getFullYear()}`;
+}
+
 export function formatEventDate(iso: string): string {
-  const d = new Date(iso);
-  return `${WEEKDAYS[(d.getDay() + 6) % 7]} ${d.getDate()} ${MONTH_LABELS[d.getMonth()]} ${d.getFullYear()}`;
+  return formatDayLabel(new Date(iso));
+}
+
+/** Maps a date to its index within the Mon-Fri work week (0=Mon..4=Fri), clamping weekends to Monday. */
+export function getWeekdayIndex(date: Date): number {
+  const day = date.getDay();
+  if (day === 0 || day === 6) return 0;
+  return day - 1;
 }
 
 export function getEventDurationHours(startIso: string, endIso: string): number {
