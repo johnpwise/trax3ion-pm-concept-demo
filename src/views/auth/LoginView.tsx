@@ -14,7 +14,6 @@ export default function LoginView() {
   // login from a previous visit), skip the form. This intentionally does not
   // react to a currentUser change caused by this component's own handleSubmit,
   // which would otherwise race the explicit post-login navigate() below.
-  // TO REMOVE
   const [wasAlreadyLoggedIn] = useState(() => useAuthStore.getState().currentUser !== null);
 
   const [email, setEmail] = useState("");
