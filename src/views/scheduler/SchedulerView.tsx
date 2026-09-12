@@ -4,7 +4,6 @@ import { useState } from "react";
 import PageHeader from "../../app/PageHeader";
 import EmptyState from "../../components/common/EmptyState";
 import { useToastStore } from "../../components/common/toastStore";
-import { getProvisionalBookings } from "../../store/selectors/schedulerSelectors";
 import { useTraxionDemoStore } from "../../store/useTraxionDemoStore";
 import type { CalendarEvent } from "../../types/domain";
 import CalendarEventDetails from "./components/CalendarEventDetails";
@@ -27,11 +26,8 @@ export default function SchedulerView() {
   const customers = useTraxionDemoStore((state) => state.customers);
   const projects = useTraxionDemoStore((state) => state.projects);
   const actions = useTraxionDemoStore((state) => state.actions);
-  const publishBookings = useTraxionDemoStore((state) => state.publishBookings);
   const discardBooking = useTraxionDemoStore((state) => state.discardBooking);
   const showToast = useToastStore((state) => state.showToast);
-
-  const provisionalBookings = getProvisionalBookings(calendarEvents);
 
   const activeResources = resources
     .filter((resource) => resource.status === "active")
@@ -44,12 +40,6 @@ export default function SchedulerView() {
   const selectedEventCustomer = selectedEvent?.customerId ? customers.find((customer) => customer.id === selectedEvent.customerId) : undefined;
   const selectedEventProject = selectedEvent?.projectId ? projects.find((project) => project.id === selectedEvent.projectId) : undefined;
   const selectedEventAction = selectedEvent?.actionId ? actions.find((action) => action.id === selectedEvent.actionId) : undefined;
-
-  const handlePublish = (): void => {
-    const count = provisionalBookings.length;
-    publishBookings();
-    showToast(`Published ${count} scheduling change${count === 1 ? "" : "s"}.`);
-  };
 
   const handleDiscard = (eventId: string): void => {
     discardBooking(eventId);
@@ -65,21 +55,6 @@ export default function SchedulerView() {
           <CalendarLegend />
         </div>
       </PageHeader>
-
-      {provisionalBookings.length > 0 ? (
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3">
-          <p className="text-sm font-medium text-amber-700 dark:text-amber-400">
-            {provisionalBookings.length} scheduling change{provisionalBookings.length === 1 ? "" : "s"} pending publish
-          </p>
-          <button
-            type="button"
-            onClick={handlePublish}
-            className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover"
-          >
-            Publish changes
-          </button>
-        </div>
-      ) : null}
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[260px_1fr]">
         <ResourcePicker resources={activeResources} selectedResourceIds={selectedResourceIds} onToggle={toggleResource} />

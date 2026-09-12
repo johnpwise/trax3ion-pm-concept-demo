@@ -19,7 +19,7 @@ export type SchedulerSlice = {
   selectWeek: (weekStartIso: string) => void;
 
   syncActionBooking: (actionId: string) => void;
-  publishBookings: () => void;
+  publishBookingsForProject: (projectId: string) => void;
   discardBooking: (eventId: string) => void;
 };
 
@@ -104,9 +104,11 @@ export const createSchedulerSlice: StateCreator<DemoStore, [], [], SchedulerSlic
     set((s) => ({ calendarEvents: [...s.calendarEvents, newEvent] }));
   },
 
-  publishBookings: () => {
+  publishBookingsForProject: (projectId) => {
     set((s) => ({
-      calendarEvents: s.calendarEvents.map((event) => (event.status === "provisional" ? { ...event, status: "published" } : event)),
+      calendarEvents: s.calendarEvents.map((event) =>
+        event.status === "provisional" && event.projectId === projectId ? { ...event, status: "published" } : event,
+      ),
     }));
   },
 

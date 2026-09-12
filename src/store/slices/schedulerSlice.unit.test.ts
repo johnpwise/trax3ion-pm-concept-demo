@@ -3,11 +3,14 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { SEED_START_DATE } from "../../data/demo-seed";
 import { findConflicts } from "../../views/scheduler/availability";
 import { addDays, toDateInputValue } from "../../views/scheduler/calendar-utils";
-import { getBookingForAction, getProvisionalBookings } from "../selectors/schedulerSelectors";
+import { getBookingForAction, getProvisionalBookingsForProject } from "../selectors/schedulerSelectors";
 import { useTraxionDemoStore } from "../useTraxionDemoStore";
 
 const WRITE_UP_ACTION_ID = "action-x3-writeup"; // seeded, unassigned, 6h estimate
 const ALFRED_RESOURCE_ID = "res-alfred"; // seeded with two full-day Annual Leave events in the seed's first week
+const X3_IMPL_PROJECT_ID = "proj-x3-impl"; // owns WRITE_UP_ACTION_ID via task-x3-scoping -> phase-x3-design
+const WORKSHOP_PREP_ACTION_ID = "action-cb-workshop-prep"; // seeded, unassigned, belongs to proj-core-bank
+const NAOMI_RESOURCE_ID = "res-naomi"; // seeded, active
 
 function tuesdayThisWeek(): string {
   return toDateInputValue(addDays(SEED_START_DATE, 1));
@@ -68,20 +71,24 @@ describe("scheduling an Action against a Resource's real calendar", () => {
     expect(getBookingForAction(action.id, useTraxionDemoStore.getState().calendarEvents)).toBeUndefined();
   });
 
-  it("publishBookings flips every provisional booking to published", () => {
+  it("publishBookingsForProject flips only that project's provisional bookings to published", () => {
     // Arrange
     const store = useTraxionDemoStore.getState();
     const action = store.actions.find((item) => item.id === WRITE_UP_ACTION_ID)!;
+    const otherAction = store.actions.find((item) => item.id === WORKSHOP_PREP_ACTION_ID)!;
     store.updateAction(action.id, { resourceId: ALFRED_RESOURCE_ID, scheduledDate: tuesdayThisWeek(), scheduledTime: "09:00" });
     store.syncActionBooking(action.id);
+    store.updateAction(otherAction.id, { resourceId: NAOMI_RESOURCE_ID, scheduledDate: tuesdayThisWeek(), scheduledTime: "09:00" });
+    store.syncActionBooking(otherAction.id);
 
     // Act
-    store.publishBookings();
+    store.publishBookingsForProject(X3_IMPL_PROJECT_ID);
 
     // Assert
     const state = useTraxionDemoStore.getState();
     expect(getBookingForAction(action.id, state.calendarEvents)?.status).toBe("published");
-    expect(getProvisionalBookings(state.calendarEvents)).toHaveLength(0);
+    expect(getBookingForAction(otherAction.id, state.calendarEvents)?.status).toBe("provisional");
+    expect(getProvisionalBookingsForProject(state.calendarEvents, X3_IMPL_PROJECT_ID)).toHaveLength(0);
   });
 
   it("resets an already-published booking back to provisional when its fields are edited again", () => {
@@ -90,7 +97,7 @@ describe("scheduling an Action against a Resource's real calendar", () => {
     const action = store.actions.find((item) => item.id === WRITE_UP_ACTION_ID)!;
     store.updateAction(action.id, { resourceId: ALFRED_RESOURCE_ID, scheduledDate: tuesdayThisWeek(), scheduledTime: "09:00" });
     store.syncActionBooking(action.id);
-    store.publishBookings();
+    store.publishBookingsForProject(X3_IMPL_PROJECT_ID);
 
     // Act
     store.updateAction(action.id, { scheduledTime: "10:00" });
