@@ -1,15 +1,16 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
+import { SEED_START_DATE } from "../../data/demo-seed";
 import { findConflicts } from "../../views/scheduler/availability";
-import { addDays, getStartOfWeek, toDateInputValue } from "../../views/scheduler/calendar-utils";
+import { addDays, toDateInputValue } from "../../views/scheduler/calendar-utils";
 import { getBookingForAction, getProvisionalBookings } from "../selectors/schedulerSelectors";
 import { useTraxionDemoStore } from "../useTraxionDemoStore";
 
 const WRITE_UP_ACTION_ID = "action-x3-writeup"; // seeded, unassigned, 6h estimate
-const ALFRED_RESOURCE_ID = "res-alfred"; // seeded with two full-day Annual Leave events this week
+const ALFRED_RESOURCE_ID = "res-alfred"; // seeded with two full-day Annual Leave events in the seed's first week
 
 function tuesdayThisWeek(): string {
-  return toDateInputValue(addDays(getStartOfWeek(new Date()), 1));
+  return toDateInputValue(addDays(SEED_START_DATE, 1));
 }
 
 describe("scheduling an Action against a Resource's real calendar", () => {
