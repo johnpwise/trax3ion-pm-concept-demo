@@ -5,6 +5,7 @@ import AllocationBar from "../../../components/common/AllocationBar";
 import HoursDifferenceValue from "../../../components/common/HoursDifferenceValue";
 import ResourceSelect from "../../../components/common/ResourceSelect";
 import ScheduledDateInput from "../../../components/common/ScheduledDateInput";
+import ScheduledTimeInput from "../../../components/common/ScheduledTimeInput";
 import { StatusBadge } from "../../../components/common/StatusBadge";
 import type { EntityStatus, Resource } from "../../../types/domain";
 
@@ -20,6 +21,8 @@ type HierarchyRowProps = {
   onResourceChange?: (resourceId: string | undefined) => void;
   scheduledDate?: string;
   onScheduledDateChange?: (date: string | undefined) => void;
+  scheduledTime?: string;
+  onScheduledTimeChange?: (time: string | undefined) => void;
   depth: 0 | 1 | 2;
   isExpanded?: boolean;
   onToggleExpand?: () => void;
@@ -44,6 +47,8 @@ export default function HierarchyRow({
   onResourceChange,
   scheduledDate,
   onScheduledDateChange,
+  scheduledTime,
+  onScheduledTimeChange,
   depth,
   isExpanded,
   onToggleExpand,
@@ -95,6 +100,9 @@ export default function HierarchyRow({
           <>
             <div className="w-full shrink-0 sm:w-36">
               <ScheduledDateInput value={scheduledDate} onChange={onScheduledDateChange} />
+            </div>
+            <div className="w-full shrink-0 sm:w-28">
+              <ScheduledTimeInput value={scheduledTime} onChange={onScheduledTimeChange} />
             </div>
             <div className="w-full shrink-0 sm:w-44">
               <ResourceSelect resources={resources} value={resourceId} onChange={onResourceChange} placeholder="Unassigned" />

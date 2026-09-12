@@ -50,6 +50,7 @@ export type Action = {
   sortOrder: number;
   resourceId?: string;
   scheduledDate?: string;
+  scheduledTime?: string;
 };
 
 export type Resource = {
@@ -62,6 +63,8 @@ export type Resource = {
 
 export type CalendarEventSource = "trax3ion" | "outlook";
 
+export type BookingStatus = "provisional" | "published";
+
 export type CalendarEvent = {
   id: string;
   resourceId: string;
@@ -69,6 +72,7 @@ export type CalendarEvent = {
   start: string;
   end: string;
   source: CalendarEventSource;
+  status?: BookingStatus;
   customerId?: string;
   projectId?: string;
   actionId?: string;

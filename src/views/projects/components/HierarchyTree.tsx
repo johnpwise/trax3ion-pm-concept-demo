@@ -23,6 +23,7 @@ export default function HierarchyTree({ projectId, canEdit, onAddPhase, onAddTas
   const actions = useTraxionDemoStore((state) => state.actions);
   const resources = useTraxionDemoStore((state) => state.resources);
   const updateAction = useTraxionDemoStore((state) => state.updateAction);
+  const syncActionBooking = useTraxionDemoStore((state) => state.syncActionBooking);
   const showToast = useToastStore((state) => state.showToast);
   const [collapsedIds, setCollapsedIds] = useState<Set<string>>(new Set());
 
@@ -134,6 +135,7 @@ export default function HierarchyTree({ projectId, canEdit, onAddPhase, onAddTas
                                 ? (resourceId) => {
                                     const result = updateAction(action.id, { resourceId });
                                     if (result.ok) {
+                                      syncActionBooking(action.id);
                                       const resourceName = resources.find((resource) => resource.id === resourceId)?.name ?? "Unassigned";
                                       showToast(`${action.name} assigned to ${resourceName}.`);
                                     }
@@ -146,11 +148,24 @@ export default function HierarchyTree({ projectId, canEdit, onAddPhase, onAddTas
                                 ? (scheduledDate) => {
                                     const result = updateAction(action.id, { scheduledDate });
                                     if (result.ok) {
+                                      syncActionBooking(action.id);
                                       showToast(
                                         scheduledDate
                                           ? `${action.name} scheduled for ${formatScheduledDate(scheduledDate)}.`
                                           : `${action.name} schedule cleared.`,
                                       );
+                                    }
+                                  }
+                                : undefined
+                            }
+                            scheduledTime={action.scheduledTime}
+                            onScheduledTimeChange={
+                              canEdit
+                                ? (scheduledTime) => {
+                                    const result = updateAction(action.id, { scheduledTime });
+                                    if (result.ok) {
+                                      syncActionBooking(action.id);
+                                      showToast(scheduledTime ? `${action.name} time set to ${scheduledTime}.` : `${action.name} time cleared.`);
                                     }
                                   }
                                 : undefined

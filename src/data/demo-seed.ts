@@ -1,7 +1,7 @@
 import type { Action, CalendarEvent, Customer, Phase, Project, Resource, Task } from "../types/domain";
 import { addDays, atTime, getStartOfWeek } from "../views/scheduler/calendar-utils";
 
-export const SEED_VERSION = 3;
+export const SEED_VERSION = 4;
 
 export type DemoSeed = {
   customers: Customer[];
