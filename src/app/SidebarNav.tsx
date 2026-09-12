@@ -81,10 +81,10 @@ export default function SidebarNav({ variant = "desktop", onNavigate }: SidebarN
         to="/dashboard"
         title={isCollapsed ? "Trax3ion PM" : undefined}
         onClick={onNavigate}
-        className={`flex items-center overflow-hidden px-5 py-5 ${isCollapsed ? "justify-center px-0" : ""}`}
+        className={`flex items-center overflow-hidden py-5 ${isCollapsed ? "justify-center px-0" : "px-5"}`}
       >
         {isCollapsed ? (
-          <span className="block h-10 w-10 overflow-hidden">
+          <span className="block h-10 w-11 overflow-hidden">
             <img src={trax3ionLogo} alt="Trax3ion PM" className="h-10 w-auto max-w-none object-cover object-left" />
           </span>
         ) : (
