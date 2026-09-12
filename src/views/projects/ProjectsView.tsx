@@ -1,16 +1,25 @@
+// Vendor
 import { FolderKanban, Plus } from "lucide-react";
+
+// React
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
-import PageHeader from "../../app/PageHeader";
+// Components
 import EmptyState from "../../components/common/EmptyState";
-import StatusFilterTabs from "../../components/common/StatusFilterTabs";
-import { useCanEdit } from "../../store/authStore";
-import { filterByStatus } from "../../store/selectors/projectSelectors";
-import { useTraxionDemoStore } from "../../store/useTraxionDemoStore";
-import type { StatusFilter } from "../../types/domain";
+import PageHeader from "../../app/PageHeader";
 import ProjectFormModal from "./components/ProjectFormModal";
 import ProjectTable from "./components/ProjectTable";
+import StatusFilterTabs from "../../components/common/StatusFilterTabs";
+
+// Store
+import { filterByStatus } from "../../store/selectors/projectSelectors";
+import { useCanEdit } from "../../store/authStore";
+import { useTraxionDemoStore } from "../../store/useTraxionDemoStore";
+
+// Types
+import type { StatusFilter } from "../../types/domain";
+
 
 function parseStatusFilter(value: string | null): StatusFilter {
   return value === "inactive" || value === "all" ? value : "active";
