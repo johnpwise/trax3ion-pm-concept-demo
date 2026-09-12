@@ -27,12 +27,19 @@ const NAV_ITEMS = [
   { to: "/scheduler", label: "Scheduler", icon: CalendarDays },
 ] as const;
 
-export default function SidebarNav() {
+type SidebarNavProps = {
+  variant?: "desktop" | "mobile";
+  onNavigate?: () => void;
+};
+
+export default function SidebarNav({ variant = "desktop", onNavigate }: SidebarNavProps) {
+  const isMobile = variant === "mobile";
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
   const isDarkMode = useAppStore((state) => state.isDarkMode);
   const toggleDarkMode = useAppStore((state) => state.toggleDarkMode);
-  const isCollapsed = useAppStore((state) => state.isSidebarCollapsed);
+  const storedIsCollapsed = useAppStore((state) => state.isSidebarCollapsed);
   const toggleSidebarCollapsed = useAppStore((state) => state.toggleSidebarCollapsed);
+  const isCollapsed = isMobile ? false : storedIsCollapsed;
   const resetDemoData = useTraxionDemoStore((state) => state.resetDemoData);
   const showToast = useToastStore((state) => state.showToast);
   const currentUser = useAuthStore((state) => state.currentUser);
@@ -54,27 +61,30 @@ export default function SidebarNav() {
 
   return (
     <aside
-      className={`relative flex shrink-0 flex-col bg-primary-950 text-white/80 transition-[width] duration-200 ${
-        isCollapsed ? "w-[4.5rem]" : "w-60"
-      }`}
+      className={`flex shrink-0 flex-col bg-primary-950 text-white/80 transition-[width] duration-200 ${
+        isMobile ? "relative h-full w-72 max-w-[85vw]" : "relative"
+      } ${!isMobile && isCollapsed ? "w-[4.5rem]" : ""} ${!isMobile && !isCollapsed ? "w-60" : ""}`}
     >
-      <button
-        type="button"
-        onClick={toggleSidebarCollapsed}
-        title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-        aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-        className="absolute -right-3 top-6 flex h-6 w-6 items-center justify-center rounded-full border border-white/10 bg-primary-950 text-white/70 shadow-sm transition-colors hover:bg-white/10 hover:text-white"
-      >
-        {isCollapsed ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronLeft className="h-3.5 w-3.5" />}
-      </button>
+      {isMobile ? null : (
+        <button
+          type="button"
+          onClick={toggleSidebarCollapsed}
+          title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          className="before:absolute before:-inset-2.5 before:content-[''] absolute -right-3 top-6 flex h-6 w-6 items-center justify-center rounded-full border border-white/10 bg-primary-950 text-white/70 shadow-sm transition-colors hover:bg-white/10 hover:text-white"
+        >
+          {isCollapsed ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronLeft className="h-3.5 w-3.5" />}
+        </button>
+      )}
 
       <Link
         to="/dashboard"
         title={isCollapsed ? "Trax3ion PM" : undefined}
-        className={`flex items-center overflow-hidden px-5 py-5 ${isCollapsed ? "justify-center px-0" : ""}`}
+        onClick={onNavigate}
+        className={`flex items-center overflow-hidden py-5 ${isCollapsed ? "justify-center px-0" : "px-5"}`}
       >
         {isCollapsed ? (
-          <span className="block h-10 w-10 overflow-hidden">
+          <span className="block h-10 w-11 overflow-hidden">
             <img src={trax3ionLogo} alt="Trax3ion PM" className="h-10 w-auto max-w-none object-cover object-left" />
           </span>
         ) : (
@@ -88,8 +98,9 @@ export default function SidebarNav() {
             key={to}
             to={to}
             title={isCollapsed ? label : undefined}
+            onClick={onNavigate}
             className={({ isActive }) =>
-              `flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+              `flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium transition-colors ${
                 isCollapsed ? "justify-center" : ""
               } ${isActive ? "bg-white/10 text-white" : "text-white/70 hover:bg-white/5 hover:text-white"}`
             }
@@ -105,7 +116,7 @@ export default function SidebarNav() {
           type="button"
           onClick={toggleDarkMode}
           title={isCollapsed ? (isDarkMode ? "Light mode" : "Dark mode") : undefined}
-          className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-white/70 transition-colors hover:bg-white/5 hover:text-white ${
+          className={`flex w-full items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-white/70 transition-colors hover:bg-white/5 hover:text-white ${
             isCollapsed ? "justify-center" : ""
           }`}
         >
@@ -117,7 +128,7 @@ export default function SidebarNav() {
             type="button"
             onClick={() => setIsResetDialogOpen(true)}
             title={isCollapsed ? "Reset Demo Data" : undefined}
-            className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-white/70 transition-colors hover:bg-white/5 hover:text-white ${
+            className={`flex w-full items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-white/70 transition-colors hover:bg-white/5 hover:text-white ${
               isCollapsed ? "justify-center" : ""
             }`}
           >
@@ -129,7 +140,7 @@ export default function SidebarNav() {
           type="button"
           onClick={handleLogout}
           title={isCollapsed ? "Log out" : undefined}
-          className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-white/70 transition-colors hover:bg-white/5 hover:text-white ${
+          className={`flex w-full items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-white/70 transition-colors hover:bg-white/5 hover:text-white ${
             isCollapsed ? "justify-center" : ""
           }`}
         >

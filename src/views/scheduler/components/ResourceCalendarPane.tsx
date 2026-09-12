@@ -10,13 +10,16 @@ type ResourceCalendarPaneProps = {
   events: CalendarEvent[];
   range: HourRange;
   onEventClick: (event: CalendarEvent) => void;
+  isDesktopViewport: boolean;
 };
 
-export default function ResourceCalendarPane({ resource, days, events, range, onEventClick }: ResourceCalendarPaneProps) {
+export default function ResourceCalendarPane({ resource, days, events, range, onEventClick, isDesktopViewport }: ResourceCalendarPaneProps) {
   const totalHeightPx = (range.endHour - range.startHour) * PX_PER_HOUR;
 
   return (
-    <div className="w-[620px] shrink-0 overflow-hidden rounded-xl border border-border bg-surface shadow-sm">
+    <div
+      className={`overflow-hidden rounded-xl border border-border bg-surface shadow-sm ${isDesktopViewport ? "w-[620px] shrink-0" : "w-full"}`}
+    >
       <div className="border-b border-border bg-muted/30 px-4 py-2.5">
         <p className="truncate text-sm font-medium text-surface-foreground">
           {resource.name}
