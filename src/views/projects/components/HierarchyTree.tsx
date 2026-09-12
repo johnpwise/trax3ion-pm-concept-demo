@@ -2,6 +2,8 @@ import { ListTree, Plus } from "lucide-react";
 import { useState } from "react";
 
 import EmptyState from "../../../components/common/EmptyState";
+import { formatScheduledDate } from "../../../components/common/scheduledDate";
+import { useToastStore } from "../../../components/common/toastStore";
 import { getPhaseTasks, getProjectPhases, getTaskActions, getPhaseAllocatedHours, getTaskAllocatedHours } from "../../../store/selectors/projectSelectors";
 import { useTraxionDemoStore } from "../../../store/useTraxionDemoStore";
 import HierarchyRow from "./HierarchyRow";
@@ -19,6 +21,9 @@ export default function HierarchyTree({ projectId, canEdit, onAddPhase, onAddTas
   const phases = useTraxionDemoStore((state) => state.phases);
   const tasks = useTraxionDemoStore((state) => state.tasks);
   const actions = useTraxionDemoStore((state) => state.actions);
+  const resources = useTraxionDemoStore((state) => state.resources);
+  const updateAction = useTraxionDemoStore((state) => state.updateAction);
+  const showToast = useToastStore((state) => state.showToast);
   const [collapsedIds, setCollapsedIds] = useState<Set<string>>(new Set());
 
   const toggle = (id: string): void => {
@@ -122,6 +127,34 @@ export default function HierarchyTree({ projectId, canEdit, onAddPhase, onAddTas
                             depth={2}
                             estimatedHours={action.estimatedHours}
                             actualHours={action.actualHours}
+                            resourceId={action.resourceId}
+                            resources={resources}
+                            onResourceChange={
+                              canEdit
+                                ? (resourceId) => {
+                                    const result = updateAction(action.id, { resourceId });
+                                    if (result.ok) {
+                                      const resourceName = resources.find((resource) => resource.id === resourceId)?.name ?? "Unassigned";
+                                      showToast(`${action.name} assigned to ${resourceName}.`);
+                                    }
+                                  }
+                                : undefined
+                            }
+                            scheduledDate={action.scheduledDate}
+                            onScheduledDateChange={
+                              canEdit
+                                ? (scheduledDate) => {
+                                    const result = updateAction(action.id, { scheduledDate });
+                                    if (result.ok) {
+                                      showToast(
+                                        scheduledDate
+                                          ? `${action.name} scheduled for ${formatScheduledDate(scheduledDate)}.`
+                                          : `${action.name} schedule cleared.`,
+                                      );
+                                    }
+                                  }
+                                : undefined
+                            }
                             onClick={() => onViewAction(action.id)}
                           />
                         ))

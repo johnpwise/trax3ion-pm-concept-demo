@@ -8,7 +8,7 @@ afterEach(cleanup);
 
 const baseEvent: CalendarEvent = {
   id: "evt-1",
-  resourceId: "res-me",
+  resourceId: "res-maya",
   title: "Client Check-in",
   start: "2026-03-09T09:00:00",
   end: "2026-03-09T10:00:00",

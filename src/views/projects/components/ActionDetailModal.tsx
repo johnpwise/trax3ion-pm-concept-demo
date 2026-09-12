@@ -39,7 +39,9 @@ export default function ActionDetailModal({ actionId, onClose }: ActionDetailMod
     event.preventDefault();
     setFormError(undefined);
 
-    const result = updateAction(actionId, { actualHours: parsedActualHours });
+    const result = updateAction(actionId, {
+      actualHours: parsedActualHours,
+    });
 
     if (!result.ok) {
       setFormError(result.error);

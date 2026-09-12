@@ -1,7 +1,7 @@
 import type { Action, CalendarEvent, Customer, Phase, Project, Resource, Task } from "../types/domain";
 import { addDays, atTime, getStartOfWeek } from "../views/scheduler/calendar-utils";
 
-export const SEED_VERSION = 2;
+export const SEED_VERSION = 3;
 
 export type DemoSeed = {
   customers: Customer[];
@@ -80,7 +80,7 @@ export function createSeedData(): DemoSeed {
   ];
 
   const actions: Action[] = [
-    { id: "action-x3-scope-session1", taskId: "task-x3-scoping", name: "Scoping Session 1", estimatedHours: 7, actualHours: 5, status: "active", sortOrder: 1 },
+    { id: "action-x3-scope-session1", taskId: "task-x3-scoping", name: "Scoping Session 1", estimatedHours: 7, actualHours: 5, status: "active", sortOrder: 1, resourceId: "res-naomi" },
     { id: "action-x3-writeup", taskId: "task-x3-scoping", name: "Write-up", estimatedHours: 6, actualHours: 8, status: "active", sortOrder: 2 },
 
     { id: "action-cb-workshop-prep", taskId: "task-cb-workshops", name: "Workshop Prep", estimatedHours: 4, status: "active", sortOrder: 1 },
@@ -88,13 +88,13 @@ export function createSeedData(): DemoSeed {
   ];
 
   const resources: Resource[] = [
-    { id: "res-me", name: "Me", role: "Project Manager", status: "active", isCurrentUser: true },
-    { id: "res-sarah", name: "Sarah Chen", role: "Senior Consultant", status: "active" },
-    { id: "res-james", name: "James Okoye", role: "Consultant", status: "active" },
-    { id: "res-priya", name: "Priya Patel", role: "Consultant", status: "active" },
-    { id: "res-tom", name: "Tom Richards", role: "Senior Consultant", status: "active" },
-    { id: "res-elena", name: "Elena Vasquez", role: "Business Analyst", status: "active" },
-    { id: "res-daniel", name: "Daniel Kim", role: "Consultant", status: "inactive" },
+    { id: "res-maya", name: "Maya Lad", role: "Project Manager", status: "active", isCurrentUser: true },
+    { id: "res-graham", name: "Graham Gibbon", role: "Consultant", status: "active" },
+    { id: "res-naomi", name: "Naomi Oates", role: "Project Manager", status: "active" },
+    { id: "res-alfred", name: "Alfred Mlambo", role: "Consultant", status: "active" },
+    { id: "res-chris", name: "Chris Shaw", role: "Consultant", status: "inactive" },
+    { id: "res-kim", name: "Kim Oglesby", role: "Consultant", status: "active" },
+    { id: "res-ragini", name: "Ragini Mulay", role: "Developer", status: "active" },
   ];
 
   const w0 = getStartOfWeek(new Date());
@@ -107,41 +107,41 @@ export function createSeedData(): DemoSeed {
   const event = (input: Omit<CalendarEvent, "id">): CalendarEvent => ({ id: nextEventId(), ...input });
 
   const calendarEvents: CalendarEvent[] = [
-    // res-me — Project Manager's own calendar: light, mostly free
-    event({ resourceId: "res-me", title: "Internal Standup", start: iso(atTime(day(w0, 0), 9)), end: iso(atTime(day(w0, 0), 9, 30)), source: "outlook" }),
-    event({ resourceId: "res-me", title: "Client Check-in — X3 Implementation", start: iso(atTime(day(w0, 2), 13)), end: iso(atTime(day(w0, 2), 14)), source: "trax3ion", customerId: "cust-acme", projectId: "proj-x3-impl" }),
-    event({ resourceId: "res-me", title: "PMO Sync", start: iso(atTime(day(w1, 3), 10)), end: iso(atTime(day(w1, 3), 11)), source: "outlook" }),
+    // res-maya — Project Manager's own calendar: light, mostly free
+    event({ resourceId: "res-maya", title: "Internal Standup", start: iso(atTime(day(w0, 0), 9)), end: iso(atTime(day(w0, 0), 9, 30)), source: "outlook" }),
+    event({ resourceId: "res-maya", title: "Client Check-in — X3 Implementation", start: iso(atTime(day(w0, 2), 13)), end: iso(atTime(day(w0, 2), 14)), source: "trax3ion", customerId: "cust-acme", projectId: "proj-x3-impl" }),
+    event({ resourceId: "res-maya", title: "PMO Sync", start: iso(atTime(day(w1, 3), 10)), end: iso(atTime(day(w1, 3), 11)), source: "outlook" }),
 
-    // res-sarah — heavily booked across both weeks
-    event({ resourceId: "res-sarah", title: "Core Banking Platform Upgrade", start: iso(atTime(day(w0, 0), 9)), end: iso(atTime(day(w0, 0), 17)), source: "trax3ion", customerId: "cust-meridian", projectId: "proj-core-bank" }),
-    event({ resourceId: "res-sarah", title: "Core Banking Platform Upgrade", start: iso(atTime(day(w0, 1), 9)), end: iso(atTime(day(w0, 1), 12)), source: "trax3ion", customerId: "cust-meridian", projectId: "proj-core-bank" }),
-    event({ resourceId: "res-sarah", title: "Regulatory Reporting Enhancement", start: iso(atTime(day(w0, 1), 13)), end: iso(atTime(day(w0, 1), 17)), source: "trax3ion", customerId: "cust-meridian", projectId: "proj-reg-report" }),
-    event({ resourceId: "res-sarah", title: "Core Banking Platform Upgrade", start: iso(atTime(day(w0, 2), 9)), end: iso(atTime(day(w0, 2), 17)), source: "trax3ion", customerId: "cust-meridian", projectId: "proj-core-bank" }),
-    event({ resourceId: "res-sarah", title: "Team Planning", start: iso(atTime(day(w0, 3), 9)), end: iso(atTime(day(w0, 3), 12)), source: "outlook" }),
-    event({ resourceId: "res-sarah", title: "Core Banking Platform Upgrade", start: iso(atTime(day(w0, 3), 13)), end: iso(atTime(day(w0, 3), 17)), source: "trax3ion", customerId: "cust-meridian", projectId: "proj-core-bank" }),
-    event({ resourceId: "res-sarah", title: "Core Banking Platform Upgrade", start: iso(atTime(day(w0, 4), 9)), end: iso(atTime(day(w0, 4), 15)), source: "trax3ion", customerId: "cust-meridian", projectId: "proj-core-bank" }),
-    event({ resourceId: "res-sarah", title: "Core Banking Platform Upgrade", start: iso(atTime(day(w1, 0), 9)), end: iso(atTime(day(w1, 0), 17)), source: "trax3ion", customerId: "cust-meridian", projectId: "proj-core-bank" }),
-    event({ resourceId: "res-sarah", title: "Regulatory Reporting Enhancement", start: iso(atTime(day(w1, 1), 9)), end: iso(atTime(day(w1, 1), 13)), source: "trax3ion", customerId: "cust-meridian", projectId: "proj-reg-report" }),
+    // res-graham — heavily booked across both weeks
+    event({ resourceId: "res-graham", title: "Core Banking Platform Upgrade", start: iso(atTime(day(w0, 0), 9)), end: iso(atTime(day(w0, 0), 17)), source: "trax3ion", customerId: "cust-meridian", projectId: "proj-core-bank" }),
+    event({ resourceId: "res-graham", title: "Core Banking Platform Upgrade", start: iso(atTime(day(w0, 1), 9)), end: iso(atTime(day(w0, 1), 12)), source: "trax3ion", customerId: "cust-meridian", projectId: "proj-core-bank" }),
+    event({ resourceId: "res-graham", title: "Regulatory Reporting Enhancement", start: iso(atTime(day(w0, 1), 13)), end: iso(atTime(day(w0, 1), 17)), source: "trax3ion", customerId: "cust-meridian", projectId: "proj-reg-report" }),
+    event({ resourceId: "res-graham", title: "Core Banking Platform Upgrade", start: iso(atTime(day(w0, 2), 9)), end: iso(atTime(day(w0, 2), 17)), source: "trax3ion", customerId: "cust-meridian", projectId: "proj-core-bank" }),
+    event({ resourceId: "res-graham", title: "Team Planning", start: iso(atTime(day(w0, 3), 9)), end: iso(atTime(day(w0, 3), 12)), source: "outlook" }),
+    event({ resourceId: "res-graham", title: "Core Banking Platform Upgrade", start: iso(atTime(day(w0, 3), 13)), end: iso(atTime(day(w0, 3), 17)), source: "trax3ion", customerId: "cust-meridian", projectId: "proj-core-bank" }),
+    event({ resourceId: "res-graham", title: "Core Banking Platform Upgrade", start: iso(atTime(day(w0, 4), 9)), end: iso(atTime(day(w0, 4), 15)), source: "trax3ion", customerId: "cust-meridian", projectId: "proj-core-bank" }),
+    event({ resourceId: "res-graham", title: "Core Banking Platform Upgrade", start: iso(atTime(day(w1, 0), 9)), end: iso(atTime(day(w1, 0), 17)), source: "trax3ion", customerId: "cust-meridian", projectId: "proj-core-bank" }),
+    event({ resourceId: "res-graham", title: "Regulatory Reporting Enhancement", start: iso(atTime(day(w1, 1), 9)), end: iso(atTime(day(w1, 1), 13)), source: "trax3ion", customerId: "cust-meridian", projectId: "proj-reg-report" }),
 
-    // res-james — a booking and a separate calendar commitment on the same day
-    event({ resourceId: "res-james", title: "X3 Implementation — Scoping", start: iso(atTime(day(w0, 0), 9)), end: iso(atTime(day(w0, 0), 12)), source: "trax3ion", customerId: "cust-acme", projectId: "proj-x3-impl", actionId: "action-x3-scope-session1" }),
-    event({ resourceId: "res-james", title: "Teams Meeting — Internal Sync", start: iso(atTime(day(w0, 0), 13)), end: iso(atTime(day(w0, 0), 14)), source: "outlook" }),
-    event({ resourceId: "res-james", title: "Teams Meeting", start: iso(atTime(day(w0, 2), 10)), end: iso(atTime(day(w0, 2), 12)), source: "outlook" }),
-    event({ resourceId: "res-james", title: "Warehouse Automation Phase 2", start: iso(atTime(day(w0, 3), 9)), end: iso(atTime(day(w0, 3), 13)), source: "trax3ion", customerId: "cust-acme", projectId: "proj-wh-auto2" }),
-    event({ resourceId: "res-james", title: "Warehouse Automation Phase 2", start: iso(atTime(day(w1, 1), 9)), end: iso(atTime(day(w1, 1), 12)), source: "trax3ion", customerId: "cust-acme", projectId: "proj-wh-auto2" }),
+    // res-naomi — a booking and a separate calendar commitment on the same day
+    event({ resourceId: "res-naomi", title: "X3 Implementation — Scoping", start: iso(atTime(day(w0, 0), 9)), end: iso(atTime(day(w0, 0), 12)), source: "trax3ion", customerId: "cust-acme", projectId: "proj-x3-impl", actionId: "action-x3-scope-session1" }),
+    event({ resourceId: "res-naomi", title: "Teams Meeting — Internal Sync", start: iso(atTime(day(w0, 0), 13)), end: iso(atTime(day(w0, 0), 14)), source: "outlook" }),
+    event({ resourceId: "res-naomi", title: "Teams Meeting", start: iso(atTime(day(w0, 2), 10)), end: iso(atTime(day(w0, 2), 12)), source: "outlook" }),
+    event({ resourceId: "res-naomi", title: "Warehouse Automation Phase 2", start: iso(atTime(day(w0, 3), 9)), end: iso(atTime(day(w0, 3), 13)), source: "trax3ion", customerId: "cust-acme", projectId: "proj-wh-auto2" }),
+    event({ resourceId: "res-naomi", title: "Warehouse Automation Phase 2", start: iso(atTime(day(w1, 1), 9)), end: iso(atTime(day(w1, 1), 12)), source: "trax3ion", customerId: "cust-acme", projectId: "proj-wh-auto2" }),
 
-    // res-priya — annual leave plus a booking later in the week
-    event({ resourceId: "res-priya", title: "Annual Leave", start: iso(atTime(day(w0, 1), 9)), end: iso(atTime(day(w0, 1), 17)), source: "outlook" }),
-    event({ resourceId: "res-priya", title: "Annual Leave", start: iso(atTime(day(w0, 2), 9)), end: iso(atTime(day(w0, 2), 17)), source: "outlook" }),
-    event({ resourceId: "res-priya", title: "Claims Automation", start: iso(atTime(day(w0, 3), 9)), end: iso(atTime(day(w0, 3), 12)), source: "trax3ion", customerId: "cust-blueharbor", projectId: "proj-claims-auto" }),
+    // res-alfred — annual leave plus a booking later in the week
+    event({ resourceId: "res-alfred", title: "Annual Leave", start: iso(atTime(day(w0, 1), 9)), end: iso(atTime(day(w0, 1), 17)), source: "outlook" }),
+    event({ resourceId: "res-alfred", title: "Annual Leave", start: iso(atTime(day(w0, 2), 9)), end: iso(atTime(day(w0, 2), 17)), source: "outlook" }),
+    event({ resourceId: "res-alfred", title: "Claims Automation", start: iso(atTime(day(w0, 3), 9)), end: iso(atTime(day(w0, 3), 12)), source: "trax3ion", customerId: "cust-blueharbor", projectId: "proj-claims-auto" }),
 
-    // res-tom — light-moderate
-    event({ resourceId: "res-tom", title: "Fleet Tracking Rollout", start: iso(atTime(day(w0, 0), 9)), end: iso(atTime(day(w0, 0), 12)), source: "trax3ion", customerId: "cust-northwind", projectId: "proj-fleet-track" }),
-    event({ resourceId: "res-tom", title: "Grid Analytics Dashboard", start: iso(atTime(day(w0, 2), 14)), end: iso(atTime(day(w0, 2), 17)), source: "trax3ion", customerId: "cust-orion", projectId: "proj-grid-analytics" }),
-    event({ resourceId: "res-tom", title: "Teams Meeting", start: iso(atTime(day(w1, 4), 9)), end: iso(atTime(day(w1, 4), 11)), source: "outlook" }),
+    // res-chris — light-moderate
+    event({ resourceId: "res-chris", title: "Fleet Tracking Rollout", start: iso(atTime(day(w0, 0), 9)), end: iso(atTime(day(w0, 0), 12)), source: "trax3ion", customerId: "cust-northwind", projectId: "proj-fleet-track" }),
+    event({ resourceId: "res-chris", title: "Grid Analytics Dashboard", start: iso(atTime(day(w0, 2), 14)), end: iso(atTime(day(w0, 2), 17)), source: "trax3ion", customerId: "cust-orion", projectId: "proj-grid-analytics" }),
+    event({ resourceId: "res-chris", title: "Teams Meeting", start: iso(atTime(day(w1, 4), 9)), end: iso(atTime(day(w1, 4), 11)), source: "outlook" }),
 
-    // res-elena — mostly free
-    event({ resourceId: "res-elena", title: "Internal Standup", start: iso(atTime(day(w0, 2), 9)), end: iso(atTime(day(w0, 2), 9, 30)), source: "outlook" }),
+    // res-kim — mostly free
+    event({ resourceId: "res-kim", title: "Internal Standup", start: iso(atTime(day(w0, 2), 9)), end: iso(atTime(day(w0, 2), 9, 30)), source: "outlook" }),
   ];
 
   return { customers, projects, phases, tasks, actions, resources, calendarEvents };

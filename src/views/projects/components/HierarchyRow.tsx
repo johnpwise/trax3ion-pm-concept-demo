@@ -3,8 +3,10 @@ import type { KeyboardEvent, ReactNode } from "react";
 
 import AllocationBar from "../../../components/common/AllocationBar";
 import HoursDifferenceValue from "../../../components/common/HoursDifferenceValue";
+import ResourceSelect from "../../../components/common/ResourceSelect";
+import ScheduledDateInput from "../../../components/common/ScheduledDateInput";
 import { StatusBadge } from "../../../components/common/StatusBadge";
-import type { EntityStatus } from "../../../types/domain";
+import type { EntityStatus, Resource } from "../../../types/domain";
 
 type HierarchyRowProps = {
   kind: string;
@@ -13,6 +15,11 @@ type HierarchyRowProps = {
   estimatedHours: number;
   allocatedHours?: number;
   actualHours?: number;
+  resourceId?: string;
+  resources?: Resource[];
+  onResourceChange?: (resourceId: string | undefined) => void;
+  scheduledDate?: string;
+  onScheduledDateChange?: (date: string | undefined) => void;
   depth: 0 | 1 | 2;
   isExpanded?: boolean;
   onToggleExpand?: () => void;
@@ -32,6 +39,11 @@ export default function HierarchyRow({
   estimatedHours,
   allocatedHours,
   actualHours,
+  resourceId,
+  resources,
+  onResourceChange,
+  scheduledDate,
+  onScheduledDateChange,
   depth,
   isExpanded,
   onToggleExpand,
@@ -78,6 +90,17 @@ export default function HierarchyRow({
           </div>
           <p className="mt-0.5 text-sm font-medium text-surface-foreground">{name}</p>
         </div>
+
+        {resources ? (
+          <>
+            <div className="w-full shrink-0 sm:w-36">
+              <ScheduledDateInput value={scheduledDate} onChange={onScheduledDateChange} />
+            </div>
+            <div className="w-full shrink-0 sm:w-44">
+              <ResourceSelect resources={resources} value={resourceId} onChange={onResourceChange} placeholder="Unassigned" />
+            </div>
+          </>
+        ) : null}
 
         <div className="w-full max-w-[260px] sm:w-64">
           {allocatedHours !== undefined ? (

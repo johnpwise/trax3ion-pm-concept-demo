@@ -48,6 +48,8 @@ export type Action = {
   actualHours?: number;
   status: EntityStatus;
   sortOrder: number;
+  resourceId?: string;
+  scheduledDate?: string;
 };
 
 export type Resource = {
