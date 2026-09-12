@@ -71,7 +71,7 @@ export default function SidebarNav({ variant = "desktop", onNavigate }: SidebarN
           onClick={toggleSidebarCollapsed}
           title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
           aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-          className="absolute -right-3 top-6 flex h-6 w-6 items-center justify-center rounded-full border border-white/10 bg-primary-950 text-white/70 shadow-sm transition-colors hover:bg-white/10 hover:text-white"
+          className="before:absolute before:-inset-2.5 before:content-[''] absolute -right-3 top-6 flex h-6 w-6 items-center justify-center rounded-full border border-white/10 bg-primary-950 text-white/70 shadow-sm transition-colors hover:bg-white/10 hover:text-white"
         >
           {isCollapsed ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronLeft className="h-3.5 w-3.5" />}
         </button>
@@ -100,7 +100,7 @@ export default function SidebarNav({ variant = "desktop", onNavigate }: SidebarN
             title={isCollapsed ? label : undefined}
             onClick={onNavigate}
             className={({ isActive }) =>
-              `flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+              `flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium transition-colors ${
                 isCollapsed ? "justify-center" : ""
               } ${isActive ? "bg-white/10 text-white" : "text-white/70 hover:bg-white/5 hover:text-white"}`
             }
@@ -116,7 +116,7 @@ export default function SidebarNav({ variant = "desktop", onNavigate }: SidebarN
           type="button"
           onClick={toggleDarkMode}
           title={isCollapsed ? (isDarkMode ? "Light mode" : "Dark mode") : undefined}
-          className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-white/70 transition-colors hover:bg-white/5 hover:text-white ${
+          className={`flex w-full items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-white/70 transition-colors hover:bg-white/5 hover:text-white ${
             isCollapsed ? "justify-center" : ""
           }`}
         >
@@ -128,7 +128,7 @@ export default function SidebarNav({ variant = "desktop", onNavigate }: SidebarN
             type="button"
             onClick={() => setIsResetDialogOpen(true)}
             title={isCollapsed ? "Reset Demo Data" : undefined}
-            className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-white/70 transition-colors hover:bg-white/5 hover:text-white ${
+            className={`flex w-full items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-white/70 transition-colors hover:bg-white/5 hover:text-white ${
               isCollapsed ? "justify-center" : ""
             }`}
           >
@@ -140,7 +140,7 @@ export default function SidebarNav({ variant = "desktop", onNavigate }: SidebarN
           type="button"
           onClick={handleLogout}
           title={isCollapsed ? "Log out" : undefined}
-          className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-white/70 transition-colors hover:bg-white/5 hover:text-white ${
+          className={`flex w-full items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-white/70 transition-colors hover:bg-white/5 hover:text-white ${
             isCollapsed ? "justify-center" : ""
           }`}
         >
