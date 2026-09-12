@@ -145,3 +145,17 @@ vite.config.ts.timestamp-*
 
 # Local docs folder
 docs/
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Agent Workflow Artifacts
+.agent-workflows/
