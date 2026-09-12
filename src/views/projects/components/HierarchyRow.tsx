@@ -68,6 +68,10 @@ export default function HierarchyRow({
     }
   };
 
+  const handleDoubleClick = (): void => {
+    if (hasChildren !== undefined) onToggleExpand?.();
+  };
+
   return (
     <div className={depth > 0 ? "border-t border-border" : ""}>
       <div
@@ -77,12 +81,14 @@ export default function HierarchyRow({
         role={onClick ? "button" : undefined}
         tabIndex={onClick ? 0 : undefined}
         onClick={onClick}
+        onDoubleClick={hasChildren !== undefined ? handleDoubleClick : undefined}
         onKeyDown={onClick ? handleKeyDown : undefined}
       >
         {hasChildren !== undefined ? (
           <button
             type="button"
             onClick={onToggleExpand}
+            onDoubleClick={(event) => event.stopPropagation()}
             className="flex h-5 w-5 shrink-0 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-muted"
             aria-label={isExpanded ? `Collapse ${name}` : `Expand ${name}`}
           >
@@ -108,13 +114,13 @@ export default function HierarchyRow({
 
         {resources ? (
           <>
-            <div className="w-full shrink-0 sm:w-36">
+            <div className="w-full shrink-0 sm:w-36" onDoubleClick={(event) => event.stopPropagation()}>
               <ScheduledDateInput value={scheduledDate} onChange={onScheduledDateChange} />
             </div>
-            <div className="w-full shrink-0 sm:w-28">
+            <div className="w-full shrink-0 sm:w-28" onDoubleClick={(event) => event.stopPropagation()}>
               <ScheduledTimeInput value={scheduledTime} onChange={onScheduledTimeChange} />
             </div>
-            <div className="w-full shrink-0 sm:w-44">
+            <div className="w-full shrink-0 sm:w-44" onDoubleClick={(event) => event.stopPropagation()}>
               <ResourceSelect resources={resources} value={resourceId} onChange={onResourceChange} placeholder="Unassigned" />
             </div>
           </>
@@ -149,6 +155,7 @@ export default function HierarchyRow({
           <button
             type="button"
             onClick={onAddChild}
+            onDoubleClick={(event) => event.stopPropagation()}
             className="inline-flex shrink-0 items-center gap-1 rounded-md border border-border px-2.5 py-1.5 text-xs font-medium text-surface-foreground transition-colors hover:bg-muted"
           >
             <Plus className="h-3.5 w-3.5" />

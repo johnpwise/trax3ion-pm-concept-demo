@@ -1,4 +1,4 @@
-import { ListTree, Plus } from "lucide-react";
+import { ChevronsDownUp, ChevronsUpDown, ListTree, Plus } from "lucide-react";
 import { useState } from "react";
 
 import EmptyState from "../../../components/common/EmptyState";
@@ -39,6 +39,13 @@ export default function HierarchyTree({ projectId, canEdit, onAddPhase, onAddTas
   };
 
   const projectPhases = getProjectPhases(phases, projectId);
+  const tasksByPhaseId = new Map(projectPhases.map((phase) => [phase.id, getPhaseTasks(tasks, phase.id)]));
+  const expandableIds = projectPhases.flatMap((phase) => [phase.id, ...(tasksByPhaseId.get(phase.id) ?? []).map((task) => task.id)]);
+  const isAllCollapsed = expandableIds.length > 0 && expandableIds.every((id) => collapsedIds.has(id));
+
+  const toggleAll = (): void => {
+    setCollapsedIds(isAllCollapsed ? new Set() : new Set(expandableIds));
+  };
 
   if (projectPhases.length === 0) {
     return (
@@ -66,21 +73,31 @@ export default function HierarchyTree({ projectId, canEdit, onAddPhase, onAddTas
     <div className="overflow-hidden rounded-xl border border-border bg-surface shadow-sm">
       <div className="flex items-center justify-between border-b border-border px-4 py-3">
         <p className="text-sm font-medium text-surface-foreground">Phases</p>
-        {canEdit ? (
+        <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={onAddPhase}
+            onClick={toggleAll}
             className="inline-flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-xs font-medium text-surface-foreground transition-colors hover:bg-muted"
           >
-            <Plus className="h-3.5 w-3.5" />
-            Add Phase
+            {isAllCollapsed ? <ChevronsUpDown className="h-3.5 w-3.5" /> : <ChevronsDownUp className="h-3.5 w-3.5" />}
+            {isAllCollapsed ? "Expand all" : "Collapse all"}
           </button>
-        ) : null}
+          {canEdit ? (
+            <button
+              type="button"
+              onClick={onAddPhase}
+              className="inline-flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-xs font-medium text-surface-foreground transition-colors hover:bg-muted"
+            >
+              <Plus className="h-3.5 w-3.5" />
+              Add Phase
+            </button>
+          ) : null}
+        </div>
       </div>
 
       <div className="px-4">
         {projectPhases.map((phase) => {
-          const phaseTasks = getPhaseTasks(tasks, phase.id);
+          const phaseTasks = tasksByPhaseId.get(phase.id) ?? [];
           const phaseHasConflict = phaseTasks.some((task) =>
             getTaskActions(actions, task.id).some((action) => getActionConflicts(action, calendarEvents).length > 0),
           );
