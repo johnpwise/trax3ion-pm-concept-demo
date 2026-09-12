@@ -1,7 +1,6 @@
 import type { StateCreator } from "zustand";
 
-import { createSeedData, SEED_VERSION } from "../../data/demo-seed";
-import { getStartOfWeek } from "../../views/scheduler/calendar-utils";
+import { createSeedData, SEED_START_DATE, SEED_VERSION } from "../../data/demo-seed";
 import type { DemoStore } from "../useTraxionDemoStore";
 
 export type DemoSlice = {
@@ -25,7 +24,7 @@ export const createDemoSlice: StateCreator<DemoStore, [], [], DemoSlice> = (set)
       resources: seed.resources,
       calendarEvents: seed.calendarEvents,
       selectedResourceIds: currentUser ? [currentUser.id] : [],
-      visibleWeekStart: getStartOfWeek(new Date()).toISOString(),
+      visibleWeekStart: SEED_START_DATE.toISOString(),
       seedVersion: SEED_VERSION,
     });
   },

@@ -8,6 +8,7 @@ import { StatusBadge } from "../../components/common/StatusBadge";
 import { useToastStore } from "../../components/common/toastStore";
 import { useCanEdit } from "../../store/authStore";
 import { getProjectAllocatedHours } from "../../store/selectors/projectSelectors";
+import { getProvisionalBookingsForProject } from "../../store/selectors/schedulerSelectors";
 import { useTraxionDemoStore } from "../../store/useTraxionDemoStore";
 import { FolderX } from "lucide-react";
 import ActionDetailModal from "./components/ActionDetailModal";
@@ -31,7 +32,9 @@ export default function ProjectDetailView() {
   const project = useTraxionDemoStore((state) => state.projects.find((item) => item.id === projectId));
   const customer = useTraxionDemoStore((state) => (project ? state.getCustomerById(project.customerId) : undefined));
   const phases = useTraxionDemoStore((state) => state.phases);
+  const calendarEvents = useTraxionDemoStore((state) => state.calendarEvents);
   const updateProject = useTraxionDemoStore((state) => state.updateProject);
+  const publishBookingsForProject = useTraxionDemoStore((state) => state.publishBookingsForProject);
   const showToast = useToastStore((state) => state.showToast);
 
   if (!project) {
@@ -50,6 +53,7 @@ export default function ProjectDetailView() {
   }
 
   const allocated = getProjectAllocatedHours(phases, project.id);
+  const provisionalBookings = getProvisionalBookingsForProject(calendarEvents, project.id);
 
   const handleToggleStatus = (): void => {
     const nextStatus = project.status === "active" ? "inactive" : "active";
@@ -57,6 +61,12 @@ export default function ProjectDetailView() {
     if (result.ok) {
       showToast(`${project.name} marked ${nextStatus}.`);
     }
+  };
+
+  const handlePublish = (): void => {
+    const count = provisionalBookings.length;
+    publishBookingsForProject(project.id);
+    showToast(`Published ${count} scheduling change${count === 1 ? "" : "s"}.`);
   };
 
   return (
@@ -90,6 +100,23 @@ export default function ProjectDetailView() {
           <HoursSummary estimatedHours={project.estimatedHours} allocatedHours={allocated} />
         </div>
       </PageHeader>
+
+      {provisionalBookings.length > 0 ? (
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3">
+          <p className="text-sm font-medium text-amber-700 dark:text-amber-400">
+            {provisionalBookings.length} scheduling change{provisionalBookings.length === 1 ? "" : "s"} pending publish
+          </p>
+          {canEdit ? (
+            <button
+              type="button"
+              onClick={handlePublish}
+              className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover"
+            >
+              Publish changes
+            </button>
+          ) : null}
+        </div>
+      ) : null}
 
       <HierarchyTree
         projectId={project.id}
