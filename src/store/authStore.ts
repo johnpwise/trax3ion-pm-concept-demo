@@ -12,6 +12,7 @@ const DEMO_USERS: DemoCredential[] = [
     email: "pm@trax3ion.demo",
     password: "trax3ion-pm",
     role: "project-manager",
+    resourceId: "res-maya",
   },
   {
     id: "user-demo",
@@ -19,6 +20,7 @@ const DEMO_USERS: DemoCredential[] = [
     email: "user@trax3ion.demo",
     password: "trax3ion-user",
     role: "user",
+    resourceId: "res-graham",
   },
 ];
 
@@ -46,7 +48,7 @@ export const useAuthStore = create<AuthState>()(
           return { ok: false, error: "Invalid email or password." };
         }
 
-        set({ currentUser: { id: match.id, name: match.name, email: match.email, role: match.role } });
+        set({ currentUser: { id: match.id, name: match.name, email: match.email, role: match.role, resourceId: match.resourceId } });
         return { ok: true };
       },
 
