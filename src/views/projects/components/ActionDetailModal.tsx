@@ -5,6 +5,7 @@ import HoursDifferenceValue from "../../../components/common/HoursDifferenceValu
 import Modal from "../../../components/common/Modal";
 import { StatusBadge } from "../../../components/common/StatusBadge";
 import { useToastStore } from "../../../components/common/toastStore";
+import { useAuthStore, useCanEdit } from "../../../store/authStore";
 import { getActionConflicts, getBookingForAction } from "../../../store/selectors/schedulerSelectors";
 import { useTraxionDemoStore } from "../../../store/useTraxionDemoStore";
 import { findAvailableSlots, type TimeWindow } from "../../scheduler/availability";
@@ -34,11 +35,16 @@ export default function ActionDetailModal({ actionId, onClose }: ActionDetailMod
   const resources = useTraxionDemoStore((state) => state.resources);
   const calendarEvents = useTraxionDemoStore((state) => state.calendarEvents);
   const showToast = useToastStore((state) => state.showToast);
+  const canEdit = useCanEdit();
+  const currentUser = useAuthStore((state) => state.currentUser);
 
   const [actualHoursInput, setActualHoursInput] = useState(action?.actualHours !== undefined ? String(action.actualHours) : "");
   const [formError, setFormError] = useState<string | undefined>();
 
   if (!action) return null;
+
+  const isAssignedToCurrentUser = Boolean(action.resourceId) && action.resourceId === currentUser?.resourceId;
+  const canEditActualHours = canEdit || isAssignedToCurrentUser;
 
   const resource = action.resourceId ? resources.find((item) => item.id === action.resourceId) : undefined;
   const resourceEvents = resource ? calendarEvents.filter((event) => event.resourceId === resource.id) : [];
@@ -115,64 +121,84 @@ export default function ActionDetailModal({ actionId, onClose }: ActionDetailMod
                 <ResourceCalendarPane resource={resource} days={[scheduledDay]} events={resourceEvents} range={range} onEventClick={() => undefined} isDesktopViewport />
               </div>
             ) : (
-              <p className="mb-3 text-sm text-muted-foreground">Pick a date and time in the hierarchy row to preview this booking against {resource.name}&apos;s calendar.</p>
+              <p className="mb-3 text-sm text-muted-foreground">
+                {canEdit
+                  ? `Pick a date and time in the hierarchy row to preview this booking against ${resource.name}'s calendar.`
+                  : "Not yet scheduled. A Project Manager can assign a date and time for this Action."}
+              </p>
             )}
 
-            {suggestions.length > 0 ? (
-              <div>
-                <p className="mb-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">Suggested available times</p>
-                <div className="flex flex-wrap gap-2">
-                  {suggestions.map((slot) => (
-                    <button
-                      key={slot.start}
-                      type="button"
-                      onClick={() => handleSuggestionClick(slot)}
-                      className="rounded-md border border-border px-2.5 py-1 text-xs font-medium text-surface-foreground transition-colors hover:bg-muted"
-                    >
-                      {formatEventTime(slot.start, slot.end)}
-                    </button>
-                  ))}
+            {canEdit ? (
+              suggestions.length > 0 ? (
+                <div>
+                  <p className="mb-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">Suggested available times</p>
+                  <div className="flex flex-wrap gap-2">
+                    {suggestions.map((slot) => (
+                      <button
+                        key={slot.start}
+                        type="button"
+                        onClick={() => handleSuggestionClick(slot)}
+                        className="rounded-md border border-border px-2.5 py-1 text-xs font-medium text-surface-foreground transition-colors hover:bg-muted"
+                      >
+                        {formatEventTime(slot.start, slot.end)}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground">No available slots found for {resource.name} on {formatEventDate(scheduledDay.toISOString())} within working hours.</p>
-            )}
+              ) : (
+                <p className="text-sm text-muted-foreground">No available slots found for {resource.name} on {formatEventDate(scheduledDay.toISOString())} within working hours.</p>
+              )
+            ) : null}
           </>
         ) : (
           <p className="text-sm text-muted-foreground">Assign a Resource in the hierarchy to schedule this Action.</p>
         )}
       </div>
 
-      <form onSubmit={handleSubmit} noValidate className="mt-4">
-        <FormField label="Actual Hours" htmlFor="action-actual-hours" optional>
-          <input
-            id="action-actual-hours"
-            type="number"
-            min={0}
-            step={1}
-            value={actualHoursInput}
-            onChange={(event) => setActualHoursInput(event.target.value)}
-            className={inputClassName}
-          />
-        </FormField>
+      {canEditActualHours ? (
+        <form onSubmit={handleSubmit} noValidate className="mt-4">
+          <FormField label="Actual Hours" htmlFor="action-actual-hours" optional>
+            <input
+              id="action-actual-hours"
+              type="number"
+              min={0}
+              step={1}
+              value={actualHoursInput}
+              onChange={(event) => setActualHoursInput(event.target.value)}
+              className={inputClassName}
+            />
+          </FormField>
 
-        {hasValidPreview ? (
-          <p className="mb-4 -mt-2 text-sm text-muted-foreground">
-            Difference: <HoursDifferenceValue estimatedHours={action.estimatedHours} actualHours={parsedActualHours} />
+          {hasValidPreview ? (
+            <p className="mb-4 -mt-2 text-sm text-muted-foreground">
+              Difference: <HoursDifferenceValue estimatedHours={action.estimatedHours} actualHours={parsedActualHours} />
+            </p>
+          ) : null}
+
+          {formError ? <p className="mb-4 text-sm text-destructive">{formError}</p> : null}
+
+          <div className="mt-2 flex justify-end gap-2">
+            <button type="button" onClick={onClose} className="rounded-md border border-border px-3 py-2 text-sm font-medium text-surface-foreground transition-colors hover:bg-muted">
+              Cancel
+            </button>
+            <button type="submit" className="rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover">
+              Save
+            </button>
+          </div>
+        </form>
+      ) : (
+        <div className="mt-4 border-t border-border pt-4">
+          <DetailRow label="Actual Hours" value={action.actualHours !== undefined ? `${action.actualHours}h` : "Not yet recorded"} />
+          <p className="mt-2 text-xs text-muted-foreground">
+            Only {resource ? resource.name : "the assigned resource"} or a Project Manager can record actual hours for this Action.
           </p>
-        ) : null}
-
-        {formError ? <p className="mb-4 text-sm text-destructive">{formError}</p> : null}
-
-        <div className="mt-2 flex justify-end gap-2">
-          <button type="button" onClick={onClose} className="rounded-md border border-border px-3 py-2 text-sm font-medium text-surface-foreground transition-colors hover:bg-muted">
-            Cancel
-          </button>
-          <button type="submit" className="rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover">
-            Save
-          </button>
+          <div className="mt-3 flex justify-end">
+            <button type="button" onClick={onClose} className="rounded-md border border-border px-3 py-2 text-sm font-medium text-surface-foreground transition-colors hover:bg-muted">
+              Close
+            </button>
+          </div>
         </div>
-      </form>
+      )}
     </Modal>
   );
 }
