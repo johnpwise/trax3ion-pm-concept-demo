@@ -102,26 +102,40 @@ function InteractiveResourceSelect({
   useEffect(() => {
     if (!isOpen) return;
 
+    // Opening the panel auto-focuses the search input, which pops up the on-screen
+    // keyboard on touch devices. That keyboard animating in fires its own resize/scroll
+    // events shortly after open — ignore those so they aren't mistaken for the user
+    // dismissing the dropdown.
+    const openedAt = Date.now();
+    const keyboardGraceMs = 500;
+    const isWithinKeyboardGrace = (): boolean => Date.now() - openedAt < keyboardGraceMs;
+
     const handlePointerDown = (event: MouseEvent): void => {
       const target = event.target as Node;
       if (triggerRef.current?.contains(target) || panelRef.current?.contains(target)) return;
       close();
     };
     const handleScroll = (event: Event): void => {
+      if (isWithinKeyboardGrace()) return;
       const target = event.target as Node;
       if (panelRef.current?.contains(target)) return;
       close();
     };
-    const handleResize = (): void => close();
+    const handleResize = (): void => {
+      if (isWithinKeyboardGrace()) return;
+      close();
+    };
 
     document.addEventListener("mousedown", handlePointerDown);
     window.addEventListener("scroll", handleScroll, true);
     window.addEventListener("resize", handleResize);
+    window.visualViewport?.addEventListener("resize", handleResize);
 
     return () => {
       document.removeEventListener("mousedown", handlePointerDown);
       window.removeEventListener("scroll", handleScroll, true);
       window.removeEventListener("resize", handleResize);
+      window.visualViewport?.removeEventListener("resize", handleResize);
     };
   }, [isOpen, close]);
 
