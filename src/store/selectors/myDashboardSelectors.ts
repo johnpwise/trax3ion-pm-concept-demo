@@ -1,0 +1,99 @@
+import type { Action, CalendarEvent, Customer, Phase, Project, Task } from "../../types/domain";
+import { addDays, parseLocalDate } from "../../views/scheduler/calendar-utils";
+
+export type MyProjectSummary = {
+  project: Project;
+  customerName: string;
+  assignedActionCount: number;
+  bookingOnly: boolean;
+};
+
+/** Projects relevant to a resource: either they have an Action assigned under it, or a calendar booking against it. */
+export function getMyProjects(
+  resourceId: string,
+  actions: Action[],
+  tasks: Task[],
+  phases: Phase[],
+  projects: Project[],
+  customers: Customer[],
+  calendarEvents: CalendarEvent[],
+): MyProjectSummary[] {
+  const taskById = new Map(tasks.map((task) => [task.id, task]));
+  const phaseById = new Map(phases.map((phase) => [phase.id, phase]));
+  const projectById = new Map(projects.map((project) => [project.id, project]));
+  const customerById = new Map(customers.map((customer) => [customer.id, customer]));
+
+  const actionCountByProjectId = new Map<string, number>();
+  for (const action of actions) {
+    if (action.resourceId !== resourceId) continue;
+    const task = taskById.get(action.taskId);
+    const phase = task ? phaseById.get(task.phaseId) : undefined;
+    if (!phase) continue;
+    actionCountByProjectId.set(phase.projectId, (actionCountByProjectId.get(phase.projectId) ?? 0) + 1);
+  }
+
+  const bookingProjectIds = new Set(
+    calendarEvents
+      .filter((event) => event.resourceId === resourceId && event.source === "trax3ion" && event.projectId)
+      .map((event) => event.projectId as string),
+  );
+
+  const projectIds = new Set<string>([...actionCountByProjectId.keys(), ...bookingProjectIds]);
+
+  return Array.from(projectIds)
+    .map((projectId) => projectById.get(projectId))
+    .filter((project): project is Project => Boolean(project))
+    .map((project) => {
+      const assignedActionCount = actionCountByProjectId.get(project.id) ?? 0;
+      return {
+        project,
+        customerName: customerById.get(project.customerId)?.name ?? "Unknown customer",
+        assignedActionCount,
+        bookingOnly: assignedActionCount === 0,
+      };
+    })
+    .sort((a, b) => a.project.name.localeCompare(b.project.name));
+}
+
+/** A resource's own Trax3ion bookings from `now` onward, nearest first. */
+export function getMyUpcomingBookings(resourceId: string, calendarEvents: CalendarEvent[], now: Date = new Date()): CalendarEvent[] {
+  return calendarEvents
+    .filter((event) => event.resourceId === resourceId && event.source === "trax3ion" && new Date(event.end) >= now)
+    .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+}
+
+/** Actions assigned to a resource, scheduled for a day before today, with no actual hours logged yet. */
+export function getMyActionsNeedingAttention(resourceId: string, actions: Action[], now: Date = new Date()): Action[] {
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+  return actions.filter((action) => {
+    if (action.resourceId !== resourceId) return false;
+    if (action.actualHours !== undefined) return false;
+    if (!action.scheduledDate) return false;
+    return parseLocalDate(action.scheduledDate) < startOfToday;
+  });
+}
+
+export type MyWeekUtilisation = {
+  bookedHours: number;
+  availableHours: number;
+  percent: number;
+};
+
+/** A single resource's booked-hours ratio for the working week starting `weekStart` (Mon-Fri, 8h/day). */
+export function getMyWeekUtilisation(resourceId: string, calendarEvents: CalendarEvent[], weekStart: Date): MyWeekUtilisation {
+  const weekEnd = addDays(weekStart, 5);
+
+  const bookedHours = calendarEvents
+    .filter((event) => event.resourceId === resourceId)
+    .filter((event) => {
+      const start = new Date(event.start);
+      return start >= weekStart && start < weekEnd;
+    })
+    .reduce((sum, event) => sum + Math.max(0, (new Date(event.end).getTime() - new Date(event.start).getTime()) / (1000 * 60 * 60)), 0);
+
+  const availableHours = 5 * 8;
+  const percent = Math.min(100, Math.round((bookedHours / availableHours) * 100));
+
+  return { bookedHours, availableHours, percent };
+}

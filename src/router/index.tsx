@@ -4,7 +4,7 @@ import App from "../App";
 import LoginView from "../views/auth/LoginView";
 import CustomerDetailView from "../views/customers/CustomerDetailView";
 import CustomersView from "../views/customers/CustomersView";
-import DashboardView from "../views/dashboard/DashboardView";
+import DashboardRouteView from "../views/dashboard/DashboardRouteView";
 import ProjectDetailView from "../views/projects/ProjectDetailView";
 import ProjectsView from "../views/projects/ProjectsView";
 import SchedulerView from "../views/scheduler/SchedulerView";
@@ -21,7 +21,7 @@ const router = createBrowserRouter([
     ),
     children: [
       { index: true, element: <Navigate to="/dashboard" replace /> },
-      { path: "dashboard", element: <DashboardView /> },
+      { path: "dashboard", element: <DashboardRouteView /> },
       { path: "projects", element: <ProjectsView /> },
       { path: "projects/:projectId", element: <ProjectDetailView /> },
       { path: "customers", element: <CustomersView /> },
