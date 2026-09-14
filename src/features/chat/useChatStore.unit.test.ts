@@ -1,16 +1,33 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { sendChatMessage } from "./chatApi";
+import { buildChatContext } from "./chatContext";
 import { useChatStore } from "./useChatStore";
+import type { ChatContext } from "./chat.types";
 
 vi.mock("./chatApi", () => ({
   sendChatMessage: vi.fn(),
 }));
 
+vi.mock("./chatContext", () => ({
+  buildChatContext: vi.fn(),
+}));
+
+const FAKE_CONTEXT: ChatContext = {
+  customers: [],
+  projects: [],
+  phases: [],
+  tasks: [],
+  actions: [],
+  resources: [],
+  calendarEvents: [],
+};
+
 describe("useChatStore", () => {
   beforeEach(() => {
     useChatStore.setState({ isOpen: false, messages: [], isSending: false, error: undefined, lastResponseId: undefined });
     vi.mocked(sendChatMessage).mockReset();
+    vi.mocked(buildChatContext).mockReset().mockReturnValue(FAKE_CONTEXT);
   });
 
   it("should open and close via openChat/closeChat/toggleChat", () => {
@@ -55,7 +72,18 @@ describe("useChatStore", () => {
     await useChatStore.getState().sendMessage("Second message");
 
     // Assert
-    expect(sendChatMessage).toHaveBeenLastCalledWith("Second message", "resp_1");
+    expect(sendChatMessage).toHaveBeenLastCalledWith("Second message", "resp_1", FAKE_CONTEXT);
+  });
+
+  it("should pass the current chat context with every call", async () => {
+    // Arrange
+    vi.mocked(sendChatMessage).mockResolvedValue({ responseId: "resp_1", message: "Reply" });
+
+    // Act
+    await useChatStore.getState().sendMessage("Hi there");
+
+    // Assert
+    expect(sendChatMessage).toHaveBeenCalledWith("Hi there", undefined, FAKE_CONTEXT);
   });
 
   it("should set an error and stop sending when the API call fails, without losing the user's message", async () => {

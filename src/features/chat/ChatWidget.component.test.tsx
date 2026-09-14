@@ -69,6 +69,6 @@ describe("ChatWidget", () => {
     // Assert
     expect(await screen.findByText("How is Project X doing?")).toBeInTheDocument();
     await waitFor(() => expect(screen.getByText("I can help with that.")).toBeInTheDocument());
-    expect(sendChatMessage).toHaveBeenCalledWith("How is Project X doing?", undefined);
+    expect(sendChatMessage).toHaveBeenCalledWith("How is Project X doing?", undefined, expect.any(Object));
   });
 });
