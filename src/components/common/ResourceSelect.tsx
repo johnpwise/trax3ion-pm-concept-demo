@@ -13,7 +13,7 @@ type ResourceSelectProps = {
   placeholder?: string;
 };
 
-type PanelPosition = { top: number; left: number; width: number };
+type PanelPosition = { top?: number; bottom?: number; left: number; width: number; maxHeight: number };
 
 export default function ResourceSelect({ resources, value, onChange, placeholder = "Unassigned" }: ResourceSelectProps) {
   const selectedResource = resources.find((resource) => resource.id === value);
@@ -74,7 +74,21 @@ function InteractiveResourceSelect({
   const open = (): void => {
     const rect = triggerRef.current?.getBoundingClientRect();
     if (!rect) return;
-    setPanelPosition({ top: rect.bottom + 4, left: rect.left, width: Math.max(rect.width, 240) });
+
+    const margin = 8;
+    const preferredHeight = 320;
+    const spaceBelow = window.innerHeight - rect.bottom - margin;
+    const spaceAbove = rect.top - margin;
+
+    const left = rect.left;
+    const width = Math.max(rect.width, 240);
+
+    if (spaceBelow >= preferredHeight || spaceBelow >= spaceAbove) {
+      setPanelPosition({ top: rect.bottom + 4, left, width, maxHeight: Math.max(spaceBelow, 120) });
+    } else {
+      setPanelPosition({ bottom: window.innerHeight - rect.top + 4, left, width, maxHeight: Math.max(spaceAbove, 120) });
+    }
+
     setQuery("");
     setHighlightedIndex(0);
     setIsOpen(true);
@@ -93,16 +107,21 @@ function InteractiveResourceSelect({
       if (triggerRef.current?.contains(target) || panelRef.current?.contains(target)) return;
       close();
     };
-    const handleScrollOrResize = (): void => close();
+    const handleScroll = (event: Event): void => {
+      const target = event.target as Node;
+      if (panelRef.current?.contains(target)) return;
+      close();
+    };
+    const handleResize = (): void => close();
 
     document.addEventListener("mousedown", handlePointerDown);
-    window.addEventListener("scroll", handleScrollOrResize, true);
-    window.addEventListener("resize", handleScrollOrResize);
+    window.addEventListener("scroll", handleScroll, true);
+    window.addEventListener("resize", handleResize);
 
     return () => {
       document.removeEventListener("mousedown", handlePointerDown);
-      window.removeEventListener("scroll", handleScrollOrResize, true);
-      window.removeEventListener("resize", handleScrollOrResize);
+      window.removeEventListener("scroll", handleScroll, true);
+      window.removeEventListener("resize", handleResize);
     };
   }, [isOpen, close]);
 
@@ -160,8 +179,15 @@ function InteractiveResourceSelect({
               data-id={RESOURCE_SELECT_TEST_IDS.panel}
               onClick={(event) => event.stopPropagation()}
               onKeyDown={(event) => event.stopPropagation()}
-              style={{ position: "fixed", top: panelPosition.top, left: panelPosition.left, width: panelPosition.width }}
-              className="z-50 overflow-hidden rounded-md border border-border bg-surface shadow-lg"
+              style={{
+                position: "fixed",
+                top: panelPosition.top,
+                bottom: panelPosition.bottom,
+                left: panelPosition.left,
+                width: panelPosition.width,
+                maxHeight: panelPosition.maxHeight,
+              }}
+              className="z-50 flex flex-col overflow-hidden rounded-md border border-border bg-surface shadow-lg"
             >
               <input
                 ref={inputRef}
@@ -171,9 +197,9 @@ function InteractiveResourceSelect({
                 onChange={(event) => handleQueryChange(event.target.value)}
                 onKeyDown={handleInputKeyDown}
                 placeholder="Search resources…"
-                className="block w-full border-b border-border bg-surface px-2.5 py-2 text-sm text-surface-foreground focus-visible:outline-none"
+                className="block w-full shrink-0 border-b border-border bg-surface px-2.5 py-2 text-sm text-surface-foreground focus-visible:outline-none"
               />
-              <ul className="max-h-60 overflow-y-auto py-1">
+              <ul className="min-h-0 flex-1 overflow-y-auto py-1">
                 {options.map((option, index) => (
                   <li key={option.id ?? "unassigned"}>
                     <button
