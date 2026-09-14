@@ -9,6 +9,7 @@ interface Env {
 interface ChatRequestBody {
   message: string;
   previousResponseId?: string;
+  context?: unknown;
 }
 
 const CHAT_INSTRUCTIONS = `
@@ -20,6 +21,20 @@ Be concise, practical and professional.
 Do not invent project, customer, resource or scheduling information.
 If information has not been supplied to you, say that you do not have it.
 `;
+
+function buildInstructions(context: unknown): string {
+  if (context === undefined) {
+    return CHAT_INSTRUCTIONS;
+  }
+
+  return `${CHAT_INSTRUCTIONS}
+Here is the current state of this demo's project data, as JSON. It reflects live data from the app right now, including anything the user has just changed.
+
+Use it to answer questions about specific customers, projects, phases, tasks, actions, resources and scheduled calendar events. Never dump the raw JSON back to the user - answer naturally, as a PM assistant would. If something is genuinely absent from this data, say so rather than guessing.
+
+${JSON.stringify(context)}
+`;
+}
 
 async function handleChat(request: Request, env: Env): Promise<Response> {
   let body: ChatRequestBody;
@@ -37,7 +52,7 @@ async function handleChat(request: Request, env: Env): Promise<Response> {
     const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
     const response = await openai.responses.create({
       model: env.OPENAI_MODEL ?? "gpt-5.6-luna",
-      instructions: CHAT_INSTRUCTIONS,
+      instructions: buildInstructions(body.context),
       input: body.message,
       previous_response_id: body.previousResponseId,
     });

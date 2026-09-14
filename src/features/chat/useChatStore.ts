@@ -1,5 +1,6 @@
 import { create } from "zustand";
 
+import { buildChatContext } from "./chatContext";
 import { sendChatMessage } from "./chatApi";
 import type { ChatMessage } from "./chat.types";
 
@@ -29,7 +30,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
     set((state) => ({ messages: [...state.messages, userMessage], isSending: true, error: undefined }));
 
     try {
-      const response = await sendChatMessage(text, get().lastResponseId);
+      const response = await sendChatMessage(text, get().lastResponseId, buildChatContext());
       const assistantMessage: ChatMessage = { id: crypto.randomUUID(), role: "assistant", content: response.message };
       set((state) => ({
         messages: [...state.messages, assistantMessage],
