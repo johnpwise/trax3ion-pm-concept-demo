@@ -2,8 +2,11 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "trax3ion-pm-concept-demo",
   "compatibility_date": "2026-09-12",
+  "compatibility_flags": ["nodejs_compat"],
+  "main": "worker/index.ts",
   "assets": {
     "directory": "./dist",
-    "not_found_handling": "single-page-application"
+    "not_found_handling": "single-page-application",
+    "binding": "ASSETS"
   }
 }
