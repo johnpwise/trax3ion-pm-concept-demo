@@ -83,7 +83,7 @@ export default function ChatWidget() {
               aria-modal="true"
               aria-label="Trax3ion Assistant"
               data-id={CHAT_WIDGET_TEST_IDS.panel}
-              className="fixed bottom-24 right-6 z-50 flex h-[32rem] max-h-[70vh] w-96 max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-xl border border-border bg-surface shadow-xl"
+              className="fixed bottom-24 right-6 z-50 flex h-[32rem] max-h-[70vh] w-96 max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-2xl border border-border bg-surface shadow-2xl"
             >
               <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-3">
                 <h2 className="text-sm font-semibold text-surface-foreground">Trax3ion Assistant</h2>
