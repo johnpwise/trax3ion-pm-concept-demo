@@ -78,7 +78,7 @@ export default function SidebarNav({ variant = "desktop", onNavigate }: SidebarN
 
   return (
     <aside
-      className={`flex shrink-0 flex-col bg-primary-950 text-white/80 transition-[width] duration-200 ${
+      className={`glass-nav flex shrink-0 flex-col border-r border-white/10 text-white/80 shadow-2xl transition-[width] duration-200 ${
         isMobile ? "relative h-full w-72 max-w-[85vw]" : "relative"
       } ${!isMobile && isCollapsed ? "w-[4.5rem]" : ""} ${!isMobile && !isCollapsed ? "w-60" : ""}`}
     >

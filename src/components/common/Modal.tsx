@@ -21,12 +21,15 @@ export default function Modal({ title, description, onClose, children, widthClas
   }, [onClose]);
 
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-overlay/60 p-4 pt-16 sm:pt-24" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-overlay/60 p-4 pt-16 backdrop-blur-sm sm:pt-24"
+      onClick={onClose}
+    >
       <div
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className={`w-full ${widthClassName} rounded-xl border border-border bg-surface shadow-xl`}
+        className={`w-full ${widthClassName} rounded-2xl border border-border bg-surface shadow-2xl`}
         onClick={(event) => event.stopPropagation()}
       >
         <div className="flex items-start justify-between gap-4 border-b border-border px-5 py-4">
