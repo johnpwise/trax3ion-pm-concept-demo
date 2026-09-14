@@ -3,6 +3,7 @@ import { type ReactNode, useEffect } from "react";
 
 import trax3ionLogo from "../assets/images/trax3ion-pm-logo.png";
 import ToastViewport from "../components/common/ToastViewport";
+import ChatWidget from "../features/chat/ChatWidget";
 import { useMediaQuery } from "../lib/useMediaQuery";
 import { useAppStore } from "../store/appStore";
 import SidebarNav from "./SidebarNav";
@@ -65,6 +66,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
         <div className="mx-auto max-w-6xl px-6 py-8 sm:px-8">{children}</div>
       </div>
       <ToastViewport />
+      <ChatWidget />
     </div>
   );
 }
