@@ -33,11 +33,11 @@ const GET_EVENTS_FOR_DATE_TOOL: OpenAI.Responses.FunctionTool = {
         description: "The calendar date to look up, as YYYY-MM-DD, in the same local calendar as the supplied data.",
       },
       resourceId: {
-        type: "string",
-        description: "Optional resource id to filter to a single person. Omit to return events for all resources.",
+        type: ["string", "null"],
+        description: "Optional resource id to filter to a single person. Pass null to return events for all resources.",
       },
     },
-    required: ["date"],
+    required: ["date", "resourceId"],
     additionalProperties: false,
   },
   strict: true,
@@ -90,8 +90,8 @@ function runTool(name: string, argsJson: string, calendarEvents: ToolCalendarEve
     return { error: `Unknown tool: ${name}` };
   }
 
-  const args = JSON.parse(argsJson) as { date: string; resourceId?: string };
-  return getEventsForDate(calendarEvents, args.date, args.resourceId);
+  const args = JSON.parse(argsJson) as { date: string; resourceId: string | null };
+  return getEventsForDate(calendarEvents, args.date, args.resourceId ?? undefined);
 }
 
 async function handleChat(request: Request, env: Env): Promise<Response> {
