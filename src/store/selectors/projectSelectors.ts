@@ -8,6 +8,11 @@ export function isNonNegativeInteger(value: number): boolean {
   return Number.isInteger(value) && value >= 0;
 }
 
+/** Allows quarter-hour increments (0, 0.25, 0.5, ...) so time can be logged in 15-minute steps. */
+export function isNonNegativeQuarterHour(value: number): boolean {
+  return Number.isFinite(value) && value >= 0 && Math.round(value * 4) === value * 4;
+}
+
 export function filterByStatus<T extends { status: "active" | "inactive" }>(items: T[], filter: StatusFilter): T[] {
   if (filter === "all") return items;
   return items.filter((item) => item.status === filter);

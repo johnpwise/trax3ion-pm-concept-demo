@@ -117,17 +117,7 @@ export function createSeedData(): DemoSeed {
     event({ resourceId: "res-maya", title: "Client Check-in — X3 Implementation", start: iso(atTime(day(w0, 2), 13)), end: iso(atTime(day(w0, 2), 14)), source: "trax3ion", customerId: "cust-acme", projectId: "proj-x3-impl" }),
     event({ resourceId: "res-maya", title: "PMO Sync", start: iso(atTime(day(w1, 3), 10)), end: iso(atTime(day(w1, 3), 11)), source: "outlook" }),
 
-    // res-graham — heavily booked across both weeks
-    event({ resourceId: "res-graham", title: "Core Banking Platform Upgrade", start: iso(atTime(day(w0, 0), 9)), end: iso(atTime(day(w0, 0), 17)), source: "trax3ion", customerId: "cust-meridian", projectId: "proj-core-bank" }),
-    event({ resourceId: "res-graham", title: "Core Banking Platform Upgrade", start: iso(atTime(day(w0, 1), 9)), end: iso(atTime(day(w0, 1), 12)), source: "trax3ion", customerId: "cust-meridian", projectId: "proj-core-bank" }),
-    event({ resourceId: "res-graham", title: "Regulatory Reporting Enhancement", start: iso(atTime(day(w0, 1), 13)), end: iso(atTime(day(w0, 1), 17)), source: "trax3ion", customerId: "cust-meridian", projectId: "proj-reg-report" }),
-    event({ resourceId: "res-graham", title: "Core Banking Platform Upgrade", start: iso(atTime(day(w0, 2), 9)), end: iso(atTime(day(w0, 2), 17)), source: "trax3ion", customerId: "cust-meridian", projectId: "proj-core-bank" }),
-    event({ resourceId: "res-graham", title: "Team Planning", start: iso(atTime(day(w0, 3), 9)), end: iso(atTime(day(w0, 3), 12)), source: "outlook" }),
-    event({ resourceId: "res-graham", title: "Core Banking Platform Upgrade", start: iso(atTime(day(w0, 3), 13)), end: iso(atTime(day(w0, 3), 17)), source: "trax3ion", customerId: "cust-meridian", projectId: "proj-core-bank" }),
-    event({ resourceId: "res-graham", title: "Core Banking Platform Upgrade", start: iso(atTime(day(w0, 4), 9)), end: iso(atTime(day(w0, 4), 15)), source: "trax3ion", customerId: "cust-meridian", projectId: "proj-core-bank" }),
-    event({ resourceId: "res-graham", title: "Core Banking Platform Upgrade", start: iso(atTime(day(w1, 0), 9)), end: iso(atTime(day(w1, 0), 17)), source: "trax3ion", customerId: "cust-meridian", projectId: "proj-core-bank" }),
-    event({ resourceId: "res-graham", title: "Regulatory Reporting Enhancement", start: iso(atTime(day(w1, 1), 9)), end: iso(atTime(day(w1, 1), 13)), source: "trax3ion", customerId: "cust-meridian", projectId: "proj-reg-report" }),
-
+    // res-graham — kept deliberately empty: he's an unbooked, unassigned Resource for the PM to use when demoing assignment
     // res-naomi — a booking and a separate calendar commitment on the same day
     event({ resourceId: "res-naomi", title: "X3 Implementation — Scoping", start: iso(atTime(day(w0, 0), 9)), end: iso(atTime(day(w0, 0), 12)), source: "trax3ion", customerId: "cust-acme", projectId: "proj-x3-impl", actionId: "action-x3-scope-session1" }),
     event({ resourceId: "res-naomi", title: "Teams Meeting — Internal Sync", start: iso(atTime(day(w0, 0), 13)), end: iso(atTime(day(w0, 0), 14)), source: "outlook" }),
@@ -155,9 +145,7 @@ export function createSeedData(): DemoSeed {
     // res-maya — one light touch, otherwise fully open
     event({ resourceId: "res-maya", title: "Client Check-in — X3 Implementation", start: iso(atTime(day(w2, 1), 13)), end: iso(atTime(day(w2, 1), 14)), source: "trax3ion", customerId: "cust-acme", projectId: "proj-x3-impl" }),
 
-    // res-graham — busy early in w2, then fully open for the rest of w2 and all of w3
-    event({ resourceId: "res-graham", title: "Core Banking Platform Upgrade", start: iso(atTime(day(w2, 0), 9)), end: iso(atTime(day(w2, 0), 17)), source: "trax3ion", customerId: "cust-meridian", projectId: "proj-core-bank" }),
-    event({ resourceId: "res-graham", title: "Regulatory Reporting Enhancement", start: iso(atTime(day(w2, 1), 9)), end: iso(atTime(day(w2, 1), 12)), source: "trax3ion", customerId: "cust-meridian", projectId: "proj-reg-report" }),
+    // res-graham — kept deliberately empty across w2/w3 too, for the same reason as above
 
     // res-naomi — a booking and a commitment in w2, one booking in w3, rest open
     event({ resourceId: "res-naomi", title: "X3 Implementation — Scoping", start: iso(atTime(day(w2, 0), 9)), end: iso(atTime(day(w2, 0), 12)), source: "trax3ion", customerId: "cust-acme", projectId: "proj-x3-impl" }),

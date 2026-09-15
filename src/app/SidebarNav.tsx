@@ -22,10 +22,10 @@ import { useAuthStore, useCanEdit } from "../store/authStore";
 import { useTraxionDemoStore } from "../store/useTraxionDemoStore";
 
 const NAV_ITEMS = [
-  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/projects", label: "Projects", icon: FolderKanban },
-  { to: "/customers", label: "Customers", icon: Users },
-  { to: "/scheduler", label: "Scheduler", icon: CalendarDays },
+  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, pmOnly: false },
+  { to: "/projects", label: "Projects", icon: FolderKanban, pmOnly: true },
+  { to: "/customers", label: "Customers", icon: Users, pmOnly: true },
+  { to: "/scheduler", label: "Scheduler", icon: CalendarDays, pmOnly: true },
 ] as const;
 
 const THEME_ORDER = [
@@ -111,7 +111,7 @@ export default function SidebarNav({ variant = "desktop", onNavigate }: SidebarN
       </Link>
 
       <nav className="flex-1 space-y-1 px-3 py-2" aria-label="Primary">
-        {NAV_ITEMS.map(({ to, label, icon: Icon }) => (
+        {NAV_ITEMS.filter(({ pmOnly }) => !pmOnly || canEdit).map(({ to, label, icon: Icon }) => (
           <NavLink
             key={to}
             to={to}
