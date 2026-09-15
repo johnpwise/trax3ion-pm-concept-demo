@@ -3,4 +3,5 @@ export const CHAT_WIDGET_TEST_IDS = {
   panel: "chat-widget-panel",
   messageInput: "chat-widget-message-input",
   sendButton: "chat-widget-send-button",
+  newChatButton: "chat-widget-new-chat-button",
 } as const;

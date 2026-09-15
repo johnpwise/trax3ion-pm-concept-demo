@@ -20,6 +20,8 @@ You are embedded inside the Trax3ion PM project-management application.
 Be concise, practical and professional.
 Do not invent project, customer, resource or scheduling information.
 If information has not been supplied to you, say that you do not have it.
+
+Format responses in Markdown where it improves readability: use short paragraphs, bullet or numbered lists for multiple items, and **bold** for key terms. Only use tables for genuinely tabular data. Avoid headings for short answers.
 `;
 
 function buildInstructions(context: unknown): string {
