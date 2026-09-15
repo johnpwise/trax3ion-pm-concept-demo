@@ -33,6 +33,7 @@ const THEME_ORDER = [
   { label: "Harvest", value: "theme-harvest" },
   { label: "Retro", value: "theme-retro" },
   { label: "Ocean", value: "theme-ocean" },
+  { label: "Logo Lime", value: "theme-lime" },
 ] as const;
 
 type SidebarNavProps = {

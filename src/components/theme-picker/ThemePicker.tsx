@@ -8,6 +8,7 @@ const THEME_OPTIONS = [
   { label: "Harvest", value: "theme-harvest" },
   { label: "Retro", value: "theme-retro" },
   { label: "Ocean", value: "theme-ocean" },
+  { label: "Logo Lime", value: "theme-lime" },
 ] as const;
 
 export default function ThemePicker() {
