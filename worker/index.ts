@@ -34,6 +34,8 @@ Here is the current state of this demo's project data, as JSON. It reflects live
 
 Use it to answer questions about specific customers, projects, phases, tasks, actions, resources and scheduled calendar events. Never dump the raw JSON back to the user - answer naturally, as a PM assistant would. If something is genuinely absent from this data, say so rather than guessing.
 
+All calendarEvents start/end timestamps are already given in the user's local wall-clock time (e.g. "2026-09-21T09:00:00" means 09:00 local). Read the hour and minute digits as-is - do not treat them as UTC and do not apply any timezone conversion.
+
 ${JSON.stringify(context)}
 `;
 }

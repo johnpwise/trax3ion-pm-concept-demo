@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { useTraxionDemoStore } from "../../store/useTraxionDemoStore";
+import { toLocalIsoLikeString } from "../../views/scheduler/calendar-utils";
 import { buildChatContext } from "./chatContext";
 
 describe("buildChatContext", () => {
@@ -17,7 +18,29 @@ describe("buildChatContext", () => {
       tasks: state.tasks,
       actions: state.actions,
       resources: state.resources,
-      calendarEvents: state.calendarEvents,
+      calendarEvents: state.calendarEvents.map((event) => ({
+        ...event,
+        start: toLocalIsoLikeString(event.start),
+        end: toLocalIsoLikeString(event.end),
+      })),
+    });
+  });
+
+  it("should convert calendar event times from UTC storage to local wall-clock time", () => {
+    // Arrange
+    const state = useTraxionDemoStore.getState();
+
+    // Act
+    const context = buildChatContext();
+
+    // Assert
+    expect(context.calendarEvents.length).toBeGreaterThan(0);
+    context.calendarEvents.forEach((event, index) => {
+      const rawEvent = state.calendarEvents[index];
+      expect(event.start).toBe(toLocalIsoLikeString(rawEvent.start));
+      expect(event.end).toBe(toLocalIsoLikeString(rawEvent.end));
+      // sanity check: local representation carries no UTC "Z" marker
+      expect(event.start).not.toMatch(/Z$/);
     });
   });
 
