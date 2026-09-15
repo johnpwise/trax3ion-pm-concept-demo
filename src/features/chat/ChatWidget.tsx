@@ -70,7 +70,7 @@ export default function ChatWidget() {
         type="button"
         data-id={CHAT_WIDGET_TEST_IDS.launcher}
         onClick={toggleChat}
-        aria-label={isOpen ? "Close Trax3ion Engine" : "Open Trax3ion Engine"}
+        aria-label={isOpen ? "Close Trax3ion Nexus" : "Open Trax3ion Nexus"}
         aria-expanded={isOpen}
         className="fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
       >
@@ -83,12 +83,12 @@ export default function ChatWidget() {
               ref={panelRef}
               role="dialog"
               aria-modal="true"
-              aria-label="Trax3ion Engine"
+              aria-label="Trax3ion Nexus"
               data-id={CHAT_WIDGET_TEST_IDS.panel}
               className="fixed bottom-24 right-6 z-50 flex h-[32rem] max-h-[70vh] w-96 max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-2xl border border-border bg-surface shadow-2xl"
             >
               <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-3">
-                <h2 className="text-sm font-semibold text-surface-foreground">Trax3ion Engine</h2>
+                <h2 className="text-sm font-semibold text-surface-foreground">Trax3ion Nexus</h2>
                 <div className="flex items-center gap-1">
                   <button
                     type="button"
@@ -104,7 +104,7 @@ export default function ChatWidget() {
                   <button
                     type="button"
                     onClick={closeChat}
-                    aria-label="Close Trax3ion Engine"
+                    aria-label="Close Trax3ion Nexus"
                     className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-surface-foreground"
                   >
                     <X className="h-4 w-4" />
