@@ -1,4 +1,5 @@
-import { CalendarClock, CheckCircle2, FolderKanban } from "lucide-react";
+import { CalendarClock, CheckCircle2, Clock, FolderKanban } from "lucide-react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 
 import PageHeader from "../../app/PageHeader";
@@ -7,6 +8,7 @@ import { getMyActionsNeedingAttention, getMyProjects, getMyUpcomingBookings, get
 import { useTraxionDemoStore } from "../../store/useTraxionDemoStore";
 import type { Action } from "../../types/domain";
 import { formatEventTime, getStartOfWeek } from "../scheduler/calendar-utils";
+import LogTimeModal from "./components/LogTimeModal";
 import UtilisationRing from "./components/UtilisationRing";
 
 function formatRelativeDay(date: Date, now: Date): string {
@@ -22,6 +24,7 @@ function formatRelativeDay(date: Date, now: Date): string {
 }
 
 export default function MyDashboardView() {
+  const [isLogTimeModalOpen, setIsLogTimeModalOpen] = useState(false);
   const currentUser = useAuthStore((state) => state.currentUser);
   const projects = useTraxionDemoStore((state) => state.projects);
   const customers = useTraxionDemoStore((state) => state.customers);
@@ -47,7 +50,7 @@ export default function MyDashboardView() {
   const myProjects = getMyProjects(resourceId, actions, tasks, phases, projects, customers, calendarEvents);
   const upcomingBookings = getMyUpcomingBookings(resourceId, calendarEvents, now).slice(0, 4);
   const actionsNeedingAttention = getMyActionsNeedingAttention(resourceId, actions, now);
-  const utilisation = getMyWeekUtilisation(resourceId, calendarEvents, weekStart);
+  const utilisation = getMyWeekUtilisation(resourceId, actions, calendarEvents, weekStart);
 
   const projectNameForAction = (action: Action): string => {
     const task = tasks.find((item) => item.id === action.taskId);
@@ -65,6 +68,15 @@ export default function MyDashboardView() {
   return (
     <div>
       <PageHeader title="My Dashboard" description="What's yours, this week." />
+
+      <button
+        type="button"
+        onClick={() => setIsLogTimeModalOpen(true)}
+        className="mb-4 flex w-full items-center justify-center gap-2 rounded-xl border border-primary-line bg-primary/10 px-5 py-4 text-sm font-semibold text-primary shadow-sm transition-colors hover:bg-primary/20"
+      >
+        <Clock className="h-4 w-4" />
+        Log Time
+      </button>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,280px)_1fr]">
         <div className="flex flex-col items-center gap-3 rounded-xl border border-border bg-surface p-5 text-center shadow-sm">
@@ -85,11 +97,7 @@ export default function MyDashboardView() {
           ) : (
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               {myProjects.map(({ project, customerName, assignedActionCount, bookingOnly }) => (
-                <Link
-                  key={project.id}
-                  to={`/projects/${project.id}`}
-                  className="flex flex-col gap-1.5 rounded-lg border border-border p-3 transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                >
+                <div key={project.id} className="flex flex-col gap-1.5 rounded-lg border border-border p-3">
                   <p className="text-sm font-medium text-surface-foreground">{project.name}</p>
                   <p className="text-xs text-muted-foreground">{customerName}</p>
                   {bookingOnly ? (
@@ -101,7 +109,7 @@ export default function MyDashboardView() {
                       {assignedActionCount} action{assignedActionCount === 1 ? "" : "s"} assigned
                     </span>
                   )}
-                </Link>
+                </div>
               ))}
             </div>
           )}
@@ -160,6 +168,8 @@ export default function MyDashboardView() {
           )}
         </div>
       </div>
+
+      {isLogTimeModalOpen ? <LogTimeModal onClose={() => setIsLogTimeModalOpen(false)} /> : null}
     </div>
   );
 }
