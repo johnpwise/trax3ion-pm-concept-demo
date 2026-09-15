@@ -1,7 +1,7 @@
 import type { Action, CalendarEvent, Customer, Phase, Project, Resource, Task } from "../types/domain";
 import { addDays, atTime } from "../views/scheduler/calendar-utils";
 
-export const SEED_VERSION = 6;
+export const SEED_VERSION = 8;
 
 /** Fixed anchor so the demo's seeded bookings always land on the same real calendar dates (Monday 21 Sep 2026). */
 export const SEED_START_DATE = new Date(2026, 8, 21);
@@ -28,7 +28,7 @@ export function createSeedData(): DemoSeed {
     { id: "cust-beacon", name: "Beacon Health Systems", status: "active" },
     { id: "cust-silverline", name: "Silverline Retail Co", status: "active" },
     { id: "cust-orion", name: "Orion Energy Partners", status: "active" },
-    { id: "cust-blueharbor", name: "Blue Harbor Insurance", status: "inactive" },
+    { id: "cust-blueharbor", name: "Blue Harbor Insurance", status: "active" },
     { id: "cust-demo-mfg", name: "Demo Manufacturing Ltd", status: "active" },
   ];
 
@@ -83,8 +83,8 @@ export function createSeedData(): DemoSeed {
   ];
 
   const actions: Action[] = [
-    { id: "action-x3-scope-session1", taskId: "task-x3-scoping", name: "Scoping Session 1", estimatedHours: 7, actualHours: 5, status: "active", sortOrder: 1, resourceId: "res-naomi" },
-    { id: "action-x3-writeup", taskId: "task-x3-scoping", name: "Write-up", estimatedHours: 6, actualHours: 8, status: "active", sortOrder: 2 },
+    { id: "action-x3-scope-session1", taskId: "task-x3-scoping", name: "Scoping Session 1", estimatedHours: 3, status: "active", sortOrder: 1, resourceId: "res-naomi", scheduledDate: "2026-09-21", scheduledTime: "09:00" },
+    { id: "action-x3-writeup", taskId: "task-x3-scoping", name: "Write-up", estimatedHours: 6, status: "active", sortOrder: 2, resourceId: "res-naomi", scheduledDate: "2026-09-25", scheduledTime: "09:00" },
 
     { id: "action-cb-workshop-prep", taskId: "task-cb-workshops", name: "Workshop Prep", estimatedHours: 4, status: "active", sortOrder: 1 },
     { id: "action-cb-facilitate", taskId: "task-cb-workshops", name: "Facilitate Workshops", estimatedHours: 10, status: "active", sortOrder: 2 },
@@ -95,7 +95,7 @@ export function createSeedData(): DemoSeed {
     { id: "res-graham", name: "Graham Gibbon", role: "Consultant", status: "active" },
     { id: "res-naomi", name: "Naomi Oates", role: "Project Manager", status: "active" },
     { id: "res-alfred", name: "Alfred Mlambo", role: "Consultant", status: "active" },
-    { id: "res-chris", name: "Chris Shaw", role: "Consultant", status: "inactive" },
+    { id: "res-chris", name: "Chris Shaw", role: "Consultant", status: "active" },
     { id: "res-kim", name: "Kim Oglesby", role: "Consultant", status: "active" },
     { id: "res-ragini", name: "Ragini Mulay", role: "Developer", status: "active" },
   ];
@@ -133,6 +133,7 @@ export function createSeedData(): DemoSeed {
     event({ resourceId: "res-naomi", title: "Teams Meeting — Internal Sync", start: iso(atTime(day(w0, 0), 13)), end: iso(atTime(day(w0, 0), 14)), source: "outlook" }),
     event({ resourceId: "res-naomi", title: "Teams Meeting", start: iso(atTime(day(w0, 2), 10)), end: iso(atTime(day(w0, 2), 12)), source: "outlook" }),
     event({ resourceId: "res-naomi", title: "Warehouse Automation Phase 2", start: iso(atTime(day(w0, 3), 9)), end: iso(atTime(day(w0, 3), 13)), source: "trax3ion", customerId: "cust-acme", projectId: "proj-wh-auto2" }),
+    event({ resourceId: "res-naomi", title: "X3 Implementation — Write-up", start: iso(atTime(day(w0, 4), 9)), end: iso(atTime(day(w0, 4), 15)), source: "trax3ion", customerId: "cust-acme", projectId: "proj-x3-impl", actionId: "action-x3-writeup" }),
     event({ resourceId: "res-naomi", title: "Warehouse Automation Phase 2", start: iso(atTime(day(w1, 1), 9)), end: iso(atTime(day(w1, 1), 12)), source: "trax3ion", customerId: "cust-acme", projectId: "proj-wh-auto2" }),
 
     // res-alfred — annual leave plus a booking later in the week
