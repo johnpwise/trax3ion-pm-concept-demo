@@ -80,17 +80,32 @@ export type MyWeekUtilisation = {
   percent: number;
 };
 
-/** A single resource's booked-hours ratio for the working week starting `weekStart` (Mon-Fri, 8h/day). */
-export function getMyWeekUtilisation(resourceId: string, calendarEvents: CalendarEvent[], weekStart: Date): MyWeekUtilisation {
+/**
+ * A single resource's current workload against a nominal 40h week (Mon-Fri, 8h/day).
+ *
+ * "Booked" combines two sources: non-Action calendar bookings that fall within `weekStart`'s Mon-Fri
+ * window (e.g. Outlook meetings), and every Action assigned to the resource, in full, regardless of
+ * whether or which week it's scheduled for. Actions are counted this way — rather than only when their
+ * scheduled date lands in the current week — because a PM can assign an Action to a resource before
+ * (or without ever) picking a specific date/time slot for it, and that commitment should still show up
+ * as workload against the resource straight away.
+ */
+export function getMyWeekUtilisation(resourceId: string, actions: Action[], calendarEvents: CalendarEvent[], weekStart: Date): MyWeekUtilisation {
   const weekEnd = addDays(weekStart, 5);
 
-  const bookedHours = calendarEvents
-    .filter((event) => event.resourceId === resourceId)
+  const bookedFromCalendar = calendarEvents
+    .filter((event) => event.resourceId === resourceId && !event.actionId)
     .filter((event) => {
       const start = new Date(event.start);
       return start >= weekStart && start < weekEnd;
     })
     .reduce((sum, event) => sum + Math.max(0, (new Date(event.end).getTime() - new Date(event.start).getTime()) / (1000 * 60 * 60)), 0);
+
+  const bookedFromAssignedActions = actions
+    .filter((action) => action.resourceId === resourceId)
+    .reduce((sum, action) => sum + (action.actualHours ?? action.estimatedHours), 0);
+
+  const bookedHours = bookedFromCalendar + bookedFromAssignedActions;
 
   const availableHours = 5 * 8;
   const percent = Math.min(100, Math.round((bookedHours / availableHours) * 100));

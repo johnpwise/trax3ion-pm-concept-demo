@@ -78,25 +78,23 @@ describe("buildChatContext", () => {
   });
 
   it("should scope a non-project-manager user's context to their own projects and schedule", () => {
-    // Arrange
+    // Arrange - Graham starts the demo unbooked and unassigned, so his scope should be empty
+    // except for himself as a Resource.
     useAuthStore.getState().login("user@trax3ion.demo", "trax3ion-user");
     const state = useTraxionDemoStore.getState();
 
     // Act
     const context = buildChatContext();
 
-    // Assert - only projects/customers Graham is assigned to
-    expect(context.projects.map((project) => project.id).sort()).toEqual(["proj-core-bank", "proj-reg-report"]);
-    expect(context.customers.map((customer) => customer.id)).toEqual(["cust-meridian"]);
+    // Assert - no projects/customers, since he isn't assigned to any yet
+    expect(context.projects).toEqual([]);
+    expect(context.customers).toEqual([]);
     expect(context.projects.length).toBeLessThan(state.projects.length);
 
-    // Assert - only his own calendar events, never anyone else's
-    expect(context.calendarEvents.length).toBeGreaterThan(0);
-    context.calendarEvents.forEach((event) => expect(event.resourceId).toBe("res-graham"));
-    expect(context.calendarEvents.length).toBeLessThan(state.calendarEvents.length);
+    // Assert - no calendar events, since he has none booked
+    expect(context.calendarEvents).toEqual([]);
 
-    // Assert - no data belonging to projects/customers outside his scope
-    expect(context.projects.some((project) => project.id === "proj-x3-impl")).toBe(false);
-    expect(context.customers.some((customer) => customer.id === "cust-acme")).toBe(false);
+    // Assert - only himself as a Resource, never anyone else's
+    expect(context.resources.map((resource) => resource.id)).toEqual(["res-graham"]);
   });
 });

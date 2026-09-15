@@ -51,6 +51,7 @@ export type Action = {
   resourceId?: string;
   scheduledDate?: string;
   scheduledTime?: string;
+  workNotes?: string;
 };
 
 export type Resource = {

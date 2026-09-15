@@ -8,7 +8,7 @@ import {
   getPhaseAllocatedHours,
   getProjectAllocatedHours,
   getTaskAllocatedHours,
-  isNonNegativeInteger,
+  isNonNegativeQuarterHour,
   isPositiveInteger,
 } from "../selectors/projectSelectors";
 import type { DemoStore } from "../useTraxionDemoStore";
@@ -268,8 +268,8 @@ export const createProjectSlice: StateCreator<DemoStore, [], [], ProjectSlice> =
       }
     }
 
-    if (patch.actualHours !== undefined && !isNonNegativeInteger(patch.actualHours)) {
-      return { ok: false, error: "Actual Hours must be a whole number of zero or more." };
+    if (patch.actualHours !== undefined && !isNonNegativeQuarterHour(patch.actualHours)) {
+      return { ok: false, error: "Actual Hours must be zero or more, in 15-minute (0.25h) increments." };
     }
 
     set((state) => ({
