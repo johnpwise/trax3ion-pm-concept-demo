@@ -93,6 +93,18 @@ export function getWeekdayIndex(date: Date): number {
   return day - 1;
 }
 
+/**
+ * Converts a UTC-stored event ISO string (as persisted on CalendarEvent) to a
+ * timezone-less "local wall-clock" ISO-like string, e.g. "2026-09-21T09:00:00".
+ * Use this whenever event times are serialized somewhere (such as an LLM prompt)
+ * that will read the literal digits rather than parsing the trailing "Z" as UTC.
+ */
+export function toLocalIsoLikeString(iso: string): string {
+  const d = new Date(iso);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+}
+
 export function getEventDurationHours(startIso: string, endIso: string): number {
   const start = new Date(startIso).getTime();
   const end = new Date(endIso).getTime();
