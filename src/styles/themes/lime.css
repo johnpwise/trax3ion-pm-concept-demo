@@ -1,0 +1,50 @@
+/* ------------------------------ */
+/* ------- Logo Lime ------------ */
+/* ------------------------------ */
+
+@theme theme-lime inline {
+  --color-trax-lime-50:  oklch(97%   0.020 127);
+  --color-trax-lime-100: oklch(94%   0.045 127);
+  --color-trax-lime-200: oklch(89%   0.075 126);
+  --color-trax-lime-300: oklch(84%   0.110 126);
+  --color-trax-lime-400: oklch(80%   0.145 126);
+  --color-trax-lime-500: oklch(77.1% 0.171 125.8);
+  --color-trax-lime-600: oklch(70%   0.165 124);
+  --color-trax-lime-700: oklch(60%   0.147 123);
+  --color-trax-lime-800: oklch(49%   0.121 124);
+  --color-trax-lime-900: oklch(38%   0.095 126);
+  --color-trax-lime-950: oklch(29%   0.076 128);
+
+  --color-trax-ink: oklch(24% 0.049 132.6);
+}
+
+:root[data-theme="theme-lime"],
+[data-theme="theme-lime"] {
+  --primary-50: var(--color-trax-lime-50);
+  --primary-100: var(--color-trax-lime-100);
+  --primary-200: var(--color-trax-lime-200);
+  --primary-300: var(--color-trax-lime-300);
+  --primary-400: var(--color-trax-lime-400);
+  --primary-500: var(--color-trax-lime-500);
+  --primary-600: var(--color-trax-lime-600);
+  --primary-700: var(--color-trax-lime-700);
+  --primary-800: var(--color-trax-lime-800);
+  --primary-900: var(--color-trax-lime-900);
+  --primary-950: var(--color-trax-lime-950);
+
+  --primary: var(--color-primary-600);
+  --primary-foreground: var(--color-trax-ink);
+  --primary-hover: var(--color-primary-700);
+  --primary-focus: var(--color-primary-700);
+  --primary-active: var(--color-primary-700);
+  --primary-checked: var(--color-primary-600);
+}
+
+[data-theme="theme-lime"].dark {
+  --primary: var(--color-primary-500);
+  --primary-foreground: var(--color-trax-ink);
+  --primary-hover: var(--color-primary-600);
+  --primary-focus: var(--color-primary-600);
+  --primary-active: var(--color-primary-600);
+  --primary-checked: var(--color-primary-500);
+}
