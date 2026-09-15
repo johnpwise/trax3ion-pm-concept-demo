@@ -1,10 +1,10 @@
 import type { Action, CalendarEvent, Customer, Phase, Project, Resource, Task } from "../types/domain";
 import { addDays, atTime } from "../views/scheduler/calendar-utils";
 
-export const SEED_VERSION = 5;
+export const SEED_VERSION = 6;
 
-/** Fixed anchor so the demo's seeded bookings always land on the same real calendar dates (Monday 14 Sep 2026). */
-export const SEED_START_DATE = new Date(2026, 8, 14);
+/** Fixed anchor so the demo's seeded bookings always land on the same real calendar dates (Monday 21 Sep 2026). */
+export const SEED_START_DATE = new Date(2026, 8, 21);
 
 export type DemoSeed = {
   customers: Customer[];

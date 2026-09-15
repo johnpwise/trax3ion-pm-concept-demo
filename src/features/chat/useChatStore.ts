@@ -14,6 +14,7 @@ type ChatState = {
   closeChat: () => void;
   toggleChat: () => void;
   sendMessage: (text: string) => Promise<void>;
+  resetChat: () => void;
 };
 
 export const useChatStore = create<ChatState>((set, get) => ({
@@ -41,4 +42,5 @@ export const useChatStore = create<ChatState>((set, get) => ({
       set({ isSending: false, error: "Something went wrong sending that message. Please try again." });
     }
   },
+  resetChat: () => set({ messages: [], error: undefined, lastResponseId: undefined }),
 }));
