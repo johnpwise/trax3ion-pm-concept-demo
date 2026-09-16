@@ -1,6 +1,5 @@
 import { CalendarClock, CheckCircle2, ChevronLeft, ChevronRight, Clock, FolderKanban, PieChart } from "lucide-react";
 import { useState } from "react";
-import { Link } from "react-router-dom";
 
 import PageHeader from "../../app/PageHeader";
 import { useAuthStore } from "../../store/authStore";
@@ -46,7 +45,7 @@ function getWeekRelativeLabel(weekOffset: number): string | undefined {
 }
 
 export default function MyDashboardView() {
-  const [isLogTimeModalOpen, setIsLogTimeModalOpen] = useState(false);
+  const [logTimeModalState, setLogTimeModalState] = useState<{ initialActionId?: string } | null>(null);
   const [workSplitMode, setWorkSplitMode] = useState<"percent" | "hours">("percent");
   const [weekOffset, setWeekOffset] = useState(0);
   const currentUser = useAuthStore((state) => state.currentUser);
@@ -88,19 +87,13 @@ export default function MyDashboardView() {
     return project?.name ?? "Unknown project";
   };
 
-  const projectIdForAction = (action: Action): string | undefined => {
-    const task = tasks.find((item) => item.id === action.taskId);
-    const phase = task ? phases.find((item) => item.id === task.phaseId) : undefined;
-    return phase?.projectId;
-  };
-
   return (
     <div>
       <PageHeader title="My Dashboard" description="What's yours, this week." />
 
       <button
         type="button"
-        onClick={() => setIsLogTimeModalOpen(true)}
+        onClick={() => setLogTimeModalState({})}
         className="mb-4 flex w-full items-center justify-center gap-2 rounded-xl border border-primary-line bg-primary/10 px-5 py-4 text-sm font-semibold text-primary shadow-sm transition-colors hover:bg-primary/20"
       >
         <Clock className="h-4 w-4" />
@@ -261,26 +254,26 @@ export default function MyDashboardView() {
             </div>
           ) : (
             <div>
-              {actionsNeedingAttention.map((action) => {
-                const projectId = projectIdForAction(action);
-                return (
-                  <Link
-                    key={action.id}
-                    to={projectId ? `/projects/${projectId}` : "#"}
-                    className="flex flex-wrap items-center justify-between gap-2 border-b border-border py-2.5 text-sm transition-colors last:border-b-0 hover:bg-muted"
-                  >
-                    <span className="font-medium text-surface-foreground">{action.name}</span>
-                    <span className="text-muted-foreground">{projectNameForAction(action)}</span>
-                    <span className="text-xs text-muted-foreground">Scheduled {action.scheduledDate} — no actual hours logged</span>
-                  </Link>
-                );
-              })}
+              {actionsNeedingAttention.map((action) => (
+                <button
+                  key={action.id}
+                  type="button"
+                  onClick={() => setLogTimeModalState({ initialActionId: action.id })}
+                  className="flex w-full flex-wrap items-center justify-between gap-2 border-b border-border py-2.5 text-left text-sm transition-colors last:border-b-0 hover:bg-muted"
+                >
+                  <span className="font-medium text-surface-foreground">{action.name}</span>
+                  <span className="text-muted-foreground">{projectNameForAction(action)}</span>
+                  <span className="text-xs text-muted-foreground">Scheduled {action.scheduledDate} — no actual hours logged</span>
+                </button>
+              ))}
             </div>
           )}
         </div>
       </div>
 
-      {isLogTimeModalOpen ? <LogTimeModal onClose={() => setIsLogTimeModalOpen(false)} /> : null}
+      {logTimeModalState ? (
+        <LogTimeModal onClose={() => setLogTimeModalState(null)} initialActionId={logTimeModalState.initialActionId} />
+      ) : null}
     </div>
   );
 }

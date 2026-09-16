@@ -12,6 +12,7 @@ import { toDateInputValue } from "../../scheduler/calendar-utils";
 
 type LogTimeModalProps = {
   onClose: () => void;
+  initialActionId?: string;
 };
 
 type QuickPick = { label: string; hours: number; minutes: number };
@@ -60,7 +61,7 @@ function getActionOptions(lookups: Lookups, taskId: string): Action[] {
 
 type LogMode = "project" | "adhoc";
 
-export default function LogTimeModal({ onClose }: LogTimeModalProps) {
+export default function LogTimeModal({ onClose, initialActionId }: LogTimeModalProps) {
   const currentUser = useAuthStore((state) => state.currentUser);
   const resourceId = currentUser?.resourceId;
 
@@ -100,10 +101,19 @@ export default function LogTimeModal({ onClose }: LogTimeModalProps) {
     return customers.filter((customer) => customerIds.has(customer.id)).sort((a, b) => a.name.localeCompare(b.name));
   }, [lookups, customers]);
 
-  const [selectedCustomerId, setSelectedCustomerId] = useState(() => customerOptions[0]?.id ?? "");
-  const [selectedProjectId, setSelectedProjectId] = useState(() => getProjectOptions(lookups, projects, selectedCustomerId)[0]?.id ?? "");
-  const [selectedTaskId, setSelectedTaskId] = useState(() => getTaskOptions(lookups, tasks, selectedProjectId)[0]?.id ?? "");
-  const [selectedActionId, setSelectedActionId] = useState(() => getActionOptions(lookups, selectedTaskId)[0]?.id ?? "");
+  // If we were opened from a specific Action (e.g. "My Actions Needing Attention"), pre-select its
+  // Customer/Project/Task/Action chain instead of defaulting to the first option in each dropdown.
+  const initialAction = initialActionId ? lookups.myActions.find((action) => action.id === initialActionId) : undefined;
+  const initialTask = initialAction ? lookups.taskById.get(initialAction.taskId) : undefined;
+  const initialPhase = initialTask ? lookups.phaseById.get(initialTask.phaseId) : undefined;
+  const initialProject = initialPhase ? lookups.projectById.get(initialPhase.projectId) : undefined;
+
+  const [selectedCustomerId, setSelectedCustomerId] = useState(() => initialProject?.customerId ?? customerOptions[0]?.id ?? "");
+  const [selectedProjectId, setSelectedProjectId] = useState(
+    () => initialProject?.id ?? getProjectOptions(lookups, projects, selectedCustomerId)[0]?.id ?? "",
+  );
+  const [selectedTaskId, setSelectedTaskId] = useState(() => initialTask?.id ?? getTaskOptions(lookups, tasks, selectedProjectId)[0]?.id ?? "");
+  const [selectedActionId, setSelectedActionId] = useState(() => initialAction?.id ?? getActionOptions(lookups, selectedTaskId)[0]?.id ?? "");
 
   const projectOptions = useMemo(() => getProjectOptions(lookups, projects, selectedCustomerId), [lookups, projects, selectedCustomerId]);
   const taskOptions = useMemo(() => getTaskOptions(lookups, tasks, selectedProjectId), [lookups, tasks, selectedProjectId]);
