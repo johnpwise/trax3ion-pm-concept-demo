@@ -185,7 +185,7 @@ export default function LogTimeModal({ onClose }: LogTimeModalProps) {
       const result = createTimeEntry({
         actionId: selectedActionId,
         resourceId,
-        workDate: toDateInputValue(new Date()),
+        workDate: selectedAction?.scheduledDate ?? toDateInputValue(new Date()),
         durationHours: Math.round(totalHours * 4) / 4,
         description: description.trim(),
         timeTypeId: selectedTimeTypeId,
