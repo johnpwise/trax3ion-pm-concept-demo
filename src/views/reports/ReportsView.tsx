@@ -1,18 +1,22 @@
 import { useSearchParams } from "react-router-dom";
 
 import PageHeader from "../../app/PageHeader";
+import AdHocWorkReport from "./components/AdHocWorkReport";
 import FinanceTimeReport from "./components/FinanceTimeReport";
 import UtilisationReport from "./components/UtilisationReport";
 
 const TABS = [
   { value: "finance", label: "Finance Time Report" },
   { value: "utilisation", label: "Utilisation Report" },
+  { value: "adhoc", label: "Ad-hoc Work Report" },
 ] as const;
 
 type ReportTab = (typeof TABS)[number]["value"];
 
 function parseTab(value: string | null): ReportTab {
-  return value === "utilisation" ? "utilisation" : "finance";
+  if (value === "utilisation") return "utilisation";
+  if (value === "adhoc") return "adhoc";
+  return "finance";
 }
 
 export default function ReportsView() {
@@ -40,7 +44,9 @@ export default function ReportsView() {
         </div>
       </PageHeader>
 
-      {tab === "finance" ? <FinanceTimeReport /> : <UtilisationReport />}
+      {tab === "finance" ? <FinanceTimeReport /> : null}
+      {tab === "utilisation" ? <UtilisationReport /> : null}
+      {tab === "adhoc" ? <AdHocWorkReport /> : null}
     </div>
   );
 }

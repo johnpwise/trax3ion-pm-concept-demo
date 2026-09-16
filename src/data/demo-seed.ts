@@ -1,7 +1,7 @@
-import type { Action, CalendarEvent, Customer, Phase, Project, Resource, Task, TimeEntry, TimeType } from "../types/domain";
+import type { AdHocTimeEntry, Action, CalendarEvent, Customer, Phase, Project, Resource, Task, TimeEntry, TimeType } from "../types/domain";
 import { addDays, atTime } from "../views/scheduler/calendar-utils";
 
-export const SEED_VERSION = 9;
+export const SEED_VERSION = 10;
 
 /**
  * Mirrors the PRD's supplied TIME TYPE reference data (section on Core Domain Model / Time Type).
@@ -39,6 +39,7 @@ export type DemoSeed = {
   calendarEvents: CalendarEvent[];
   timeTypes: TimeType[];
   timeEntries: TimeEntry[];
+  adHocTimeEntries: AdHocTimeEntry[];
 };
 
 function iso(date: Date): string {
@@ -189,5 +190,20 @@ export function createSeedData(): DemoSeed {
     event({ resourceId: "res-ragini", title: "Fleet Tracking Rollout", start: iso(atTime(day(w2, 1), 9)), end: iso(atTime(day(w2, 1), 12)), source: "trax3ion", customerId: "cust-northwind", projectId: "proj-fleet-track" }),
   ];
 
-  return { customers, projects, phases, tasks, actions, resources, calendarEvents, timeTypes: TIME_TYPES, timeEntries: [] };
+  const adHocTimeEntries: AdHocTimeEntry[] = [
+    {
+      id: "adhoc-graham-p1",
+      resourceId: "res-graham",
+      workDate: "2026-09-21",
+      startTime: "12:00",
+      durationHours: 1,
+      context: "other-customer",
+      description: "P1 outage for Everline Foods (no open Trax3ion project) — remote session to restore service, interrupted a booked Action.",
+      timeTypeId: "tt-cc",
+      createdAt: iso(atTime(w0, 13)),
+      createdBy: "user-demo",
+    },
+  ];
+
+  return { customers, projects, phases, tasks, actions, resources, calendarEvents, timeTypes: TIME_TYPES, timeEntries: [], adHocTimeEntries };
 }

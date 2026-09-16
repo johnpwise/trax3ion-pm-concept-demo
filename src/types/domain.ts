@@ -106,3 +106,25 @@ export type TimeEntry = {
   createdAt: string;
   createdBy: string;
 };
+
+export type AdHocContext = "other-customer" | "internal-bau" | "presales" | "admin-overhead" | "other";
+
+/**
+ * Time a Resource logs that isn't against any Project Action — deliberately kept in its own
+ * collection, separate from `TimeEntry`, so it never rolls up into a Project's actual hours or
+ * Finance figures (client scenario: a Consultant interrupted by unplanned/unbooked work, e.g. a
+ * P1 for a Customer with no open Project). Still requires a Time Type so it can be reported
+ * alongside project time (FR-016) without being counted as project time.
+ */
+export type AdHocTimeEntry = {
+  id: string;
+  resourceId: string;
+  workDate: string;
+  startTime?: string;
+  durationHours: number;
+  context: AdHocContext;
+  description: string;
+  timeTypeId: string;
+  createdAt: string;
+  createdBy: string;
+};

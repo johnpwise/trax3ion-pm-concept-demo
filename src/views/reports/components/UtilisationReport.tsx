@@ -14,9 +14,10 @@ export default function UtilisationReport() {
   const actions = useTraxionDemoStore((state) => state.actions);
   const calendarEvents = useTraxionDemoStore((state) => state.calendarEvents);
   const timeEntries = useTraxionDemoStore((state) => state.timeEntries);
+  const adHocTimeEntries = useTraxionDemoStore((state) => state.adHocTimeEntries);
 
   const weekLabel = formatWeekRangeLabel(weekStart);
-  const rows = getUtilisationReportRows(resources, actions, calendarEvents, timeEntries, weekStart);
+  const rows = getUtilisationReportRows(resources, actions, calendarEvents, timeEntries, adHocTimeEntries, weekStart);
 
   return (
     <div>
@@ -67,6 +68,7 @@ export default function UtilisationReport() {
               <tr className="border-b border-border text-xs uppercase tracking-wide text-muted-foreground">
                 <th className="px-4 py-3 font-medium">Resource</th>
                 <th className="px-4 py-3 font-medium text-right">Booked Hours</th>
+                <th className="px-4 py-3 font-medium text-right">Ad-hoc Hours</th>
                 <th className="px-4 py-3 font-medium text-right">Available Hours</th>
                 <th className="px-4 py-3 font-medium text-right">Utilisation</th>
               </tr>
@@ -76,6 +78,7 @@ export default function UtilisationReport() {
                 <tr key={row.resource.id} className="border-b border-border last:border-b-0 hover:bg-muted/40">
                   <td className="px-4 py-3 font-medium text-surface-foreground">{row.resource.name}</td>
                   <td className="px-4 py-3 text-right text-surface-foreground">{row.bookedHours}h</td>
+                  <td className="px-4 py-3 text-right text-surface-foreground">{row.adHocHours}h</td>
                   <td className="px-4 py-3 text-right text-surface-foreground">{row.availableHours}h</td>
                   <td className={`px-4 py-3 text-right font-medium ${row.percent >= 100 ? "text-destructive" : "text-surface-foreground"}`}>
                     {row.percent}%

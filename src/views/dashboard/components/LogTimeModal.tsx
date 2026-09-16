@@ -4,9 +4,10 @@ import FormField, { inputClassName } from "../../../components/common/FormField"
 import Modal from "../../../components/common/Modal";
 import { useToastStore } from "../../../components/common/toastStore";
 import { useAuthStore } from "../../../store/authStore";
+import { AD_HOC_CONTEXTS } from "../../../store/slices/adHocTimeSlice";
 import { getActionActualHours } from "../../../store/selectors/projectSelectors";
 import { useTraxionDemoStore } from "../../../store/useTraxionDemoStore";
-import type { Action, Customer, Phase, Project, Task } from "../../../types/domain";
+import type { Action, AdHocContext, Customer, Phase, Project, Task } from "../../../types/domain";
 import { toDateInputValue } from "../../scheduler/calendar-utils";
 
 type LogTimeModalProps = {
@@ -57,6 +58,8 @@ function getActionOptions(lookups: Lookups, taskId: string): Action[] {
   return lookups.myActions.filter((action) => action.taskId === taskId).sort((a, b) => a.sortOrder - b.sortOrder);
 }
 
+type LogMode = "project" | "adhoc";
+
 export default function LogTimeModal({ onClose }: LogTimeModalProps) {
   const currentUser = useAuthStore((state) => state.currentUser);
   const resourceId = currentUser?.resourceId;
@@ -70,7 +73,11 @@ export default function LogTimeModal({ onClose }: LogTimeModalProps) {
   const timeTypes = useTraxionDemoStore((state) => state.timeTypes);
   const createTimeEntry = useTraxionDemoStore((state) => state.createTimeEntry);
   const deleteTimeEntry = useTraxionDemoStore((state) => state.deleteTimeEntry);
+  const createAdHocTimeEntry = useTraxionDemoStore((state) => state.createAdHocTimeEntry);
+  const deleteAdHocTimeEntry = useTraxionDemoStore((state) => state.deleteAdHocTimeEntry);
   const showToast = useToastStore((state) => state.showToast);
+
+  const [mode, setMode] = useState<LogMode>("project");
 
   const lookups: Lookups = useMemo(
     () => ({
@@ -106,13 +113,15 @@ export default function LogTimeModal({ onClose }: LogTimeModalProps) {
   const [minutes, setMinutes] = useState(0);
   const [description, setDescription] = useState("");
   const [selectedTimeTypeId, setSelectedTimeTypeId] = useState(() => timeTypes.find((tt) => tt.id === "tt-cc")?.id ?? timeTypes[0]?.id ?? "");
+  const [adHocDate, setAdHocDate] = useState(() => toDateInputValue(new Date()));
+  const [adHocStartTime, setAdHocStartTime] = useState("");
+  const [adHocContext, setAdHocContext] = useState<AdHocContext>(AD_HOC_CONTEXTS[0].value);
   const [formError, setFormError] = useState<string | undefined>();
-  const [lastLog, setLastLog] = useState<{
-    entryId: string;
-    actionName: string;
-    hours: number;
-    minutes: number;
-  } | null>(null);
+  const [lastLog, setLastLog] = useState<
+    | { kind: "project"; entryId: string; label: string; hours: number; minutes: number }
+    | { kind: "adhoc"; entryId: string; label: string; hours: number; minutes: number }
+    | null
+  >(null);
 
   const handleCustomerChange = (customerId: string): void => {
     setSelectedCustomerId(customerId);
@@ -143,6 +152,7 @@ export default function LogTimeModal({ onClose }: LogTimeModalProps) {
   const totalHours = hours + minutes / 60;
   const selectedAction = actionOptions.find((action) => action.id === selectedActionId);
   const selectedTask = selectedTaskId ? lookups.taskById.get(selectedTaskId) : undefined;
+  const showTimeFields = mode === "adhoc" || customerOptions.length > 0;
 
   const resetTimeFields = (): void => {
     setHours(0);
@@ -153,10 +163,6 @@ export default function LogTimeModal({ onClose }: LogTimeModalProps) {
   const submitLog = (): boolean => {
     setFormError(undefined);
 
-    if (!selectedActionId) {
-      setFormError("Select an Action to log time against.");
-      return false;
-    }
     if (totalHours <= 0) {
       setFormError("Enter a time greater than zero.");
       return false;
@@ -170,12 +176,44 @@ export default function LogTimeModal({ onClose }: LogTimeModalProps) {
       return false;
     }
 
-    const result = createTimeEntry({
-      actionId: selectedActionId,
+    if (mode === "project") {
+      if (!selectedActionId) {
+        setFormError("Select an Action to log time against.");
+        return false;
+      }
+
+      const result = createTimeEntry({
+        actionId: selectedActionId,
+        resourceId,
+        workDate: toDateInputValue(new Date()),
+        durationHours: Math.round(totalHours * 4) / 4,
+        description: description.trim(),
+        timeTypeId: selectedTimeTypeId,
+        createdBy: currentUser.id,
+      });
+
+      if (!result.ok) {
+        setFormError(result.error);
+        return false;
+      }
+
+      showToast(`Logged ${hours}h ${minutes}m against "${selectedAction?.name}".`);
+      setLastLog({ kind: "project", entryId: result.id, label: selectedAction?.name ?? "", hours, minutes });
+      return true;
+    }
+
+    if (!description.trim()) {
+      setFormError("Add a short description of the ad-hoc work.");
+      return false;
+    }
+
+    const result = createAdHocTimeEntry({
       resourceId,
-      workDate: toDateInputValue(new Date()),
+      workDate: adHocDate,
+      startTime: adHocStartTime || undefined,
       durationHours: Math.round(totalHours * 4) / 4,
-      description: description.trim(),
+      context: adHocContext,
+      description,
       timeTypeId: selectedTimeTypeId,
       createdBy: currentUser.id,
     });
@@ -185,22 +223,22 @@ export default function LogTimeModal({ onClose }: LogTimeModalProps) {
       return false;
     }
 
-    showToast(`Logged ${hours}h ${minutes}m against "${selectedAction?.name}".`);
-    setLastLog({ entryId: result.id, actionName: selectedAction?.name ?? "", hours, minutes });
+    showToast(`Logged ${hours}h ${minutes}m of ad-hoc work.`);
+    setLastLog({ kind: "adhoc", entryId: result.id, label: "ad-hoc work", hours, minutes });
     return true;
   };
 
   const handleUndoLastEntry = (): void => {
     if (!lastLog) return;
 
-    const result = deleteTimeEntry(lastLog.entryId);
+    const result = lastLog.kind === "project" ? deleteTimeEntry(lastLog.entryId) : deleteAdHocTimeEntry(lastLog.entryId);
 
     if (!result.ok) {
       setFormError(result.error);
       return;
     }
 
-    showToast(`Undid the last time log (${lastLog.hours}h ${lastLog.minutes}m) for "${lastLog.actionName}".`);
+    showToast(`Undid the last time log (${lastLog.hours}h ${lastLog.minutes}m) for "${lastLog.label}".`);
     setLastLog(null);
   };
 
@@ -213,151 +251,223 @@ export default function LogTimeModal({ onClose }: LogTimeModalProps) {
     if (submitLog()) resetTimeFields();
   };
 
-  if (customerOptions.length === 0) {
-    return (
-      <Modal title="Log Time" onClose={onClose}>
-        <p className="text-sm text-muted-foreground">You don't have any Actions assigned to you yet, so there's nothing to log time against.</p>
-        <div className="mt-4 flex justify-end">
-          <button type="button" onClick={onClose} className="rounded-md border border-border px-3 py-2 text-sm font-medium text-surface-foreground transition-colors hover:bg-muted">
-            Close
-          </button>
-        </div>
-      </Modal>
-    );
-  }
-
   return (
-    <Modal title="Log Time" description="Record actual time against one of your assigned Actions." onClose={onClose}>
+    <Modal
+      title="Log Time"
+      description="Record time against a Project Action, or log ad-hoc work that isn't part of any Project."
+      onClose={onClose}
+    >
+      <div className="mb-4 inline-flex rounded-lg border border-border bg-muted/40 p-1" role="tablist" aria-label="Log time mode">
+        {(
+          [
+            { value: "project", label: "Project Action" },
+            { value: "adhoc", label: "Ad-hoc Work" },
+          ] as const
+        ).map((option) => (
+          <button
+            key={option.value}
+            type="button"
+            role="tab"
+            aria-selected={mode === option.value}
+            onClick={() => {
+              setMode(option.value);
+              setFormError(undefined);
+            }}
+            className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+              mode === option.value ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-surface-foreground"
+            }`}
+          >
+            {option.label}
+          </button>
+        ))}
+      </div>
+
       <form onSubmit={handleSubmit} noValidate>
-        <FormField label="Customer" htmlFor="log-time-customer">
-          <select
-            id="log-time-customer"
-            value={selectedCustomerId}
-            onChange={(event) => handleCustomerChange(event.target.value)}
-            className={inputClassName}
-          >
-            {customerOptions.map((customer) => (
-              <option key={customer.id} value={customer.id}>
-                {customer.name}
-              </option>
-            ))}
-          </select>
-        </FormField>
+        {mode === "project" ? (
+          customerOptions.length === 0 ? (
+            <p className="mb-4 text-sm text-muted-foreground">
+              You don't have any Actions assigned to you yet. Switch to "Ad-hoc Work" above to log unplanned or unbooked time instead.
+            </p>
+          ) : (
+            <>
+              <FormField label="Customer" htmlFor="log-time-customer">
+                <select
+                  id="log-time-customer"
+                  value={selectedCustomerId}
+                  onChange={(event) => handleCustomerChange(event.target.value)}
+                  className={inputClassName}
+                >
+                  {customerOptions.map((customer) => (
+                    <option key={customer.id} value={customer.id}>
+                      {customer.name}
+                    </option>
+                  ))}
+                </select>
+              </FormField>
 
-        <FormField label="Project" htmlFor="log-time-project">
-          <select
-            id="log-time-project"
-            value={selectedProjectId}
-            onChange={(event) => handleProjectChange(event.target.value)}
-            className={inputClassName}
-          >
-            {projectOptions.map((project) => (
-              <option key={project.id} value={project.id}>
-                {project.name}
-              </option>
-            ))}
-          </select>
-        </FormField>
+              <FormField label="Project" htmlFor="log-time-project">
+                <select
+                  id="log-time-project"
+                  value={selectedProjectId}
+                  onChange={(event) => handleProjectChange(event.target.value)}
+                  className={inputClassName}
+                >
+                  {projectOptions.map((project) => (
+                    <option key={project.id} value={project.id}>
+                      {project.name}
+                    </option>
+                  ))}
+                </select>
+              </FormField>
 
-        <FormField label="Task" htmlFor="log-time-task">
-          <select id="log-time-task" value={selectedTaskId} onChange={(event) => handleTaskChange(event.target.value)} className={inputClassName}>
-            {taskOptions.map((task) => (
-              <option key={task.id} value={task.id}>
-                {task.name}
-              </option>
-            ))}
-          </select>
-        </FormField>
+              <FormField label="Task" htmlFor="log-time-task">
+                <select id="log-time-task" value={selectedTaskId} onChange={(event) => handleTaskChange(event.target.value)} className={inputClassName}>
+                  {taskOptions.map((task) => (
+                    <option key={task.id} value={task.id}>
+                      {task.name}
+                    </option>
+                  ))}
+                </select>
+              </FormField>
 
-        <FormField label="Action" htmlFor="log-time-action">
-          <select
-            id="log-time-action"
-            value={selectedActionId}
-            onChange={(event) => setSelectedActionId(event.target.value)}
-            className={inputClassName}
-          >
-            {actionOptions.map((action) => (
-              <option key={action.id} value={action.id}>
-                {action.name} ({getActionActualHours(timeEntries, action.id)}h / {action.estimatedHours !== undefined ? `${action.estimatedHours}h` : "ad hoc"})
-              </option>
-            ))}
-          </select>
-        </FormField>
+              <FormField label="Action" htmlFor="log-time-action">
+                <select
+                  id="log-time-action"
+                  value={selectedActionId}
+                  onChange={(event) => setSelectedActionId(event.target.value)}
+                  className={inputClassName}
+                >
+                  {actionOptions.map((action) => (
+                    <option key={action.id} value={action.id}>
+                      {action.name} ({getActionActualHours(timeEntries, action.id)}h / {action.estimatedHours !== undefined ? `${action.estimatedHours}h` : "ad hoc"})
+                    </option>
+                  ))}
+                </select>
+              </FormField>
 
-        {selectedTask ? <p className="-mt-2 mb-4 text-xs text-muted-foreground">Under task "{selectedTask.name}".</p> : null}
+              {selectedTask ? <p className="-mt-2 mb-4 text-xs text-muted-foreground">Under task "{selectedTask.name}".</p> : null}
+            </>
+          )
+        ) : (
+          <>
+            <div className="mb-2 grid grid-cols-2 gap-4">
+              <FormField label="Date" htmlFor="log-time-adhoc-date">
+                <input
+                  id="log-time-adhoc-date"
+                  type="date"
+                  value={adHocDate}
+                  onChange={(event) => setAdHocDate(event.target.value)}
+                  className={inputClassName}
+                />
+              </FormField>
+              <FormField label="Start Time" htmlFor="log-time-adhoc-start" optional>
+                <input
+                  id="log-time-adhoc-start"
+                  type="time"
+                  value={adHocStartTime}
+                  onChange={(event) => setAdHocStartTime(event.target.value)}
+                  className={inputClassName}
+                />
+              </FormField>
+            </div>
 
-        <div className="mb-2 grid grid-cols-2 gap-4">
-          <FormField label="Hours" htmlFor="log-time-hours">
-            <input
-              id="log-time-hours"
-              type="number"
-              min={0}
-              step={1}
-              value={hours}
-              onChange={(event) => setHours(Math.max(0, Number(event.target.value)))}
-              className={inputClassName}
-            />
-          </FormField>
-          <FormField label="Minutes" htmlFor="log-time-minutes">
-            <select
-              id="log-time-minutes"
-              value={minutes}
-              onChange={(event) => setMinutes(Number(event.target.value))}
-              className={inputClassName}
-            >
-              <option value={0}>0</option>
-              <option value={15}>15</option>
-              <option value={30}>30</option>
-              <option value={45}>45</option>
-            </select>
-          </FormField>
-        </div>
+            <FormField label="What kind of work was this?" htmlFor="log-time-adhoc-context">
+              <select
+                id="log-time-adhoc-context"
+                value={adHocContext}
+                onChange={(event) => setAdHocContext(event.target.value as AdHocContext)}
+                className={inputClassName}
+              >
+                {AD_HOC_CONTEXTS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </FormField>
 
-        <div className="mb-4 flex flex-wrap gap-2">
-          {QUICK_PICKS.map((pick) => (
-            <button
-              key={pick.label}
-              type="button"
-              onClick={() => applyQuickPick(pick)}
-              className="rounded-md border border-border px-2.5 py-1 text-xs font-medium text-surface-foreground transition-colors hover:bg-muted"
-            >
-              {pick.label}
-            </button>
-          ))}
-        </div>
+            <p className="-mt-2 mb-4 text-xs text-muted-foreground">
+              Kept separate from Project reporting — this won't count against any Project's booked or actual hours.
+            </p>
+          </>
+        )}
 
-        <FormField label="Time Type" htmlFor="log-time-type">
-          <select
-            id="log-time-type"
-            value={selectedTimeTypeId}
-            onChange={(event) => setSelectedTimeTypeId(event.target.value)}
-            className={inputClassName}
-          >
-            {timeTypes.map((timeType) => (
-              <option key={timeType.id} value={timeType.id}>
-                {timeType.timeTag}
-              </option>
-            ))}
-          </select>
-        </FormField>
+        {showTimeFields ? (
+          <>
+            <div className="mb-2 grid grid-cols-2 gap-4">
+              <FormField label="Hours" htmlFor="log-time-hours">
+                <input
+                  id="log-time-hours"
+                  type="number"
+                  min={0}
+                  step={1}
+                  value={hours}
+                  onChange={(event) => setHours(Math.max(0, Number(event.target.value)))}
+                  className={inputClassName}
+                />
+              </FormField>
+              <FormField label="Minutes" htmlFor="log-time-minutes">
+                <select
+                  id="log-time-minutes"
+                  value={minutes}
+                  onChange={(event) => setMinutes(Number(event.target.value))}
+                  className={inputClassName}
+                >
+                  <option value={0}>0</option>
+                  <option value={15}>15</option>
+                  <option value={30}>30</option>
+                  <option value={45}>45</option>
+                </select>
+              </FormField>
+            </div>
 
-        <FormField label="Description" htmlFor="log-time-description" optional>
-          <textarea
-            id="log-time-description"
-            rows={3}
-            value={description}
-            onChange={(event) => setDescription(event.target.value)}
-            placeholder="What did you work on?"
-            className={inputClassName}
-          />
-        </FormField>
+            <div className="mb-4 flex flex-wrap gap-2">
+              {QUICK_PICKS.map((pick) => (
+                <button
+                  key={pick.label}
+                  type="button"
+                  onClick={() => applyQuickPick(pick)}
+                  className="rounded-md border border-border px-2.5 py-1 text-xs font-medium text-surface-foreground transition-colors hover:bg-muted"
+                >
+                  {pick.label}
+                </button>
+              ))}
+            </div>
+
+            <FormField label="Time Type" htmlFor="log-time-type">
+              <select
+                id="log-time-type"
+                value={selectedTimeTypeId}
+                onChange={(event) => setSelectedTimeTypeId(event.target.value)}
+                className={inputClassName}
+              >
+                {timeTypes.map((timeType) => (
+                  <option key={timeType.id} value={timeType.id}>
+                    {timeType.timeTag}
+                  </option>
+                ))}
+              </select>
+            </FormField>
+
+            <FormField label="Description" htmlFor="log-time-description" optional={mode === "project"}>
+              <textarea
+                id="log-time-description"
+                rows={3}
+                value={description}
+                onChange={(event) => setDescription(event.target.value)}
+                placeholder={mode === "project" ? "What did you work on?" : "What happened, and what did you do?"}
+                className={inputClassName}
+              />
+            </FormField>
+          </>
+        ) : null}
 
         {formError ? <p className="mb-4 text-sm text-destructive">{formError}</p> : null}
 
         {lastLog ? (
           <div className="mb-4 flex items-center justify-between gap-4 rounded-md border border-border bg-muted/40 px-3 py-2 text-xs">
             <span className="text-muted-foreground">
-              Just logged {lastLog.hours}h {lastLog.minutes}m against "{lastLog.actionName}".
+              Just logged {lastLog.hours}h {lastLog.minutes}m against "{lastLog.label}".
             </span>
             <button type="button" onClick={handleUndoLastEntry} className="shrink-0 font-medium text-primary transition-colors hover:underline">
               Undo last entry
@@ -372,11 +482,16 @@ export default function LogTimeModal({ onClose }: LogTimeModalProps) {
           <button
             type="button"
             onClick={handleSaveAndLogAnother}
-            className="rounded-md border border-primary-line px-3 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/10"
+            disabled={!showTimeFields}
+            className="rounded-md border border-primary-line px-3 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Save &amp; log another
           </button>
-          <button type="submit" className="rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover">
+          <button
+            type="submit"
+            disabled={!showTimeFields}
+            className="rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
+          >
             Log time
           </button>
         </div>
