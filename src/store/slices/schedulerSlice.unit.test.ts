@@ -7,13 +7,13 @@ import { getBookingForAction, getProvisionalBookingsForProject } from "../select
 import { useTraxionDemoStore } from "../useTraxionDemoStore";
 
 const WRITE_UP_ACTION_ID = "action-x3-writeup"; // seeded, unassigned, 6h estimate
-const ALFRED_RESOURCE_ID = "res-alfred"; // seeded with two full-day Annual Leave events in the seed's first week
+const ALFRED_RESOURCE_ID = "res-alfred"; // seeded with two full-day Annual Leave events on Wed/Thu of the seed's first week
 const X3_IMPL_PROJECT_ID = "proj-x3-impl"; // owns WRITE_UP_ACTION_ID via task-x3-scoping -> phase-x3-design
 const WORKSHOP_PREP_ACTION_ID = "action-cb-workshop-prep"; // seeded, unassigned, belongs to proj-core-bank
 const NAOMI_RESOURCE_ID = "res-naomi"; // seeded, active
 
-function tuesdayThisWeek(): string {
-  return toDateInputValue(addDays(SEED_START_DATE, 1));
+function wednesdayThisWeek(): string {
+  return toDateInputValue(addDays(SEED_START_DATE, 2));
 }
 
 describe("scheduling an Action against a Resource's real calendar", () => {
@@ -28,7 +28,7 @@ describe("scheduling an Action against a Resource's real calendar", () => {
     const action = store.actions.find((item) => item.id === WRITE_UP_ACTION_ID)!;
 
     // Act
-    store.updateAction(action.id, { resourceId: ALFRED_RESOURCE_ID, scheduledDate: tuesdayThisWeek(), scheduledTime: "09:00" });
+    store.updateAction(action.id, { resourceId: ALFRED_RESOURCE_ID, scheduledDate: wednesdayThisWeek(), scheduledTime: "09:00" });
     store.syncActionBooking(action.id);
 
     // Assert
@@ -45,7 +45,7 @@ describe("scheduling an Action against a Resource's real calendar", () => {
     const action = store.actions.find((item) => item.id === WRITE_UP_ACTION_ID)!;
 
     // Act
-    store.updateAction(action.id, { resourceId: ALFRED_RESOURCE_ID, scheduledDate: tuesdayThisWeek(), scheduledTime: "09:00" });
+    store.updateAction(action.id, { resourceId: ALFRED_RESOURCE_ID, scheduledDate: wednesdayThisWeek(), scheduledTime: "09:00" });
     store.syncActionBooking(action.id);
 
     const state = useTraxionDemoStore.getState();
@@ -60,7 +60,7 @@ describe("scheduling an Action against a Resource's real calendar", () => {
     // Arrange
     const store = useTraxionDemoStore.getState();
     const action = store.actions.find((item) => item.id === WRITE_UP_ACTION_ID)!;
-    store.updateAction(action.id, { resourceId: ALFRED_RESOURCE_ID, scheduledDate: tuesdayThisWeek(), scheduledTime: "09:00" });
+    store.updateAction(action.id, { resourceId: ALFRED_RESOURCE_ID, scheduledDate: wednesdayThisWeek(), scheduledTime: "09:00" });
     store.syncActionBooking(action.id);
 
     // Act
@@ -76,9 +76,9 @@ describe("scheduling an Action against a Resource's real calendar", () => {
     const store = useTraxionDemoStore.getState();
     const action = store.actions.find((item) => item.id === WRITE_UP_ACTION_ID)!;
     const otherAction = store.actions.find((item) => item.id === WORKSHOP_PREP_ACTION_ID)!;
-    store.updateAction(action.id, { resourceId: ALFRED_RESOURCE_ID, scheduledDate: tuesdayThisWeek(), scheduledTime: "09:00" });
+    store.updateAction(action.id, { resourceId: ALFRED_RESOURCE_ID, scheduledDate: wednesdayThisWeek(), scheduledTime: "09:00" });
     store.syncActionBooking(action.id);
-    store.updateAction(otherAction.id, { resourceId: NAOMI_RESOURCE_ID, scheduledDate: tuesdayThisWeek(), scheduledTime: "09:00" });
+    store.updateAction(otherAction.id, { resourceId: NAOMI_RESOURCE_ID, scheduledDate: wednesdayThisWeek(), scheduledTime: "09:00" });
     store.syncActionBooking(otherAction.id);
 
     // Act
@@ -95,7 +95,7 @@ describe("scheduling an Action against a Resource's real calendar", () => {
     // Arrange
     const store = useTraxionDemoStore.getState();
     const action = store.actions.find((item) => item.id === WRITE_UP_ACTION_ID)!;
-    store.updateAction(action.id, { resourceId: ALFRED_RESOURCE_ID, scheduledDate: tuesdayThisWeek(), scheduledTime: "09:00" });
+    store.updateAction(action.id, { resourceId: ALFRED_RESOURCE_ID, scheduledDate: wednesdayThisWeek(), scheduledTime: "09:00" });
     store.syncActionBooking(action.id);
     store.publishBookingsForProject(X3_IMPL_PROJECT_ID);
 
@@ -111,7 +111,7 @@ describe("scheduling an Action against a Resource's real calendar", () => {
     // Arrange
     const store = useTraxionDemoStore.getState();
     const action = store.actions.find((item) => item.id === WRITE_UP_ACTION_ID)!;
-    store.updateAction(action.id, { resourceId: ALFRED_RESOURCE_ID, scheduledDate: tuesdayThisWeek(), scheduledTime: "09:00" });
+    store.updateAction(action.id, { resourceId: ALFRED_RESOURCE_ID, scheduledDate: wednesdayThisWeek(), scheduledTime: "09:00" });
     store.syncActionBooking(action.id);
     const booking = getBookingForAction(action.id, useTraxionDemoStore.getState().calendarEvents)!;
 
