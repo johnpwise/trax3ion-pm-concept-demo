@@ -4,7 +4,14 @@ import { useState } from "react";
 import EmptyState from "../../../components/common/EmptyState";
 import { formatScheduledDate } from "../../../components/common/scheduledDate";
 import { useToastStore } from "../../../components/common/toastStore";
-import { getPhaseTasks, getProjectPhases, getTaskActions, getPhaseAllocatedHours, getTaskAllocatedHours } from "../../../store/selectors/projectSelectors";
+import {
+  getActionActualHours,
+  getPhaseTasks,
+  getProjectPhases,
+  getTaskActions,
+  getPhaseAllocatedHours,
+  getTaskAllocatedHours,
+} from "../../../store/selectors/projectSelectors";
 import { getActionConflicts } from "../../../store/selectors/schedulerSelectors";
 import { useTraxionDemoStore } from "../../../store/useTraxionDemoStore";
 import HierarchyRow from "./HierarchyRow";
@@ -24,6 +31,7 @@ export default function HierarchyTree({ projectId, canEdit, onAddPhase, onAddTas
   const actions = useTraxionDemoStore((state) => state.actions);
   const resources = useTraxionDemoStore((state) => state.resources);
   const calendarEvents = useTraxionDemoStore((state) => state.calendarEvents);
+  const timeEntries = useTraxionDemoStore((state) => state.timeEntries);
   const updateAction = useTraxionDemoStore((state) => state.updateAction);
   const syncActionBooking = useTraxionDemoStore((state) => state.syncActionBooking);
   const showToast = useToastStore((state) => state.showToast);
@@ -152,7 +160,7 @@ export default function HierarchyTree({ projectId, canEdit, onAddPhase, onAddTas
                             status={action.status}
                             depth={2}
                             estimatedHours={action.estimatedHours}
-                            actualHours={action.actualHours}
+                            actualHours={timeEntries.some((entry) => entry.actionId === action.id) ? getActionActualHours(timeEntries, action.id) : undefined}
                             hasConflict={getActionConflicts(action, calendarEvents).length > 0}
                             resourceId={action.resourceId}
                             resources={resources}

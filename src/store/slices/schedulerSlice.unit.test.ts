@@ -36,7 +36,7 @@ describe("scheduling an Action against a Resource's real calendar", () => {
     expect(booking).toBeDefined();
     expect(booking?.status).toBe("provisional");
     expect(booking?.resourceId).toBe(ALFRED_RESOURCE_ID);
-    expect(new Date(booking!.end).getTime() - new Date(booking!.start).getTime()).toBe(action.estimatedHours * 60 * 60 * 1000);
+    expect(new Date(booking!.end).getTime() - new Date(booking!.start).getTime()).toBe(action.estimatedHours! * 60 * 60 * 1000);
   });
 
   it("cross-references the new booking against the Resource's calendar and flags the seeded Annual Leave conflict", () => {

@@ -1,11 +1,11 @@
-import { type FormEvent, type ReactNode, useState } from "react";
+import type { ReactNode } from "react";
 
-import FormField, { inputClassName } from "../../../components/common/FormField";
 import HoursDifferenceValue from "../../../components/common/HoursDifferenceValue";
 import Modal from "../../../components/common/Modal";
 import { StatusBadge } from "../../../components/common/StatusBadge";
 import { useToastStore } from "../../../components/common/toastStore";
-import { useAuthStore, useCanEdit } from "../../../store/authStore";
+import { useCanEdit } from "../../../store/authStore";
+import { getActionActualHours } from "../../../store/selectors/projectSelectors";
 import { getActionConflicts, getBookingForAction } from "../../../store/selectors/schedulerSelectors";
 import { useTraxionDemoStore } from "../../../store/useTraxionDemoStore";
 import { findAvailableSlots, type TimeWindow } from "../../scheduler/availability";
@@ -34,17 +34,12 @@ export default function ActionDetailModal({ actionId, onClose }: ActionDetailMod
   const syncActionBooking = useTraxionDemoStore((state) => state.syncActionBooking);
   const resources = useTraxionDemoStore((state) => state.resources);
   const calendarEvents = useTraxionDemoStore((state) => state.calendarEvents);
+  const timeEntries = useTraxionDemoStore((state) => state.timeEntries);
+  const timeTypes = useTraxionDemoStore((state) => state.timeTypes);
   const showToast = useToastStore((state) => state.showToast);
   const canEdit = useCanEdit();
-  const currentUser = useAuthStore((state) => state.currentUser);
-
-  const [actualHoursInput, setActualHoursInput] = useState(action?.actualHours !== undefined ? String(action.actualHours) : "");
-  const [formError, setFormError] = useState<string | undefined>();
 
   if (!action) return null;
-
-  const isAssignedToCurrentUser = Boolean(action.resourceId) && action.resourceId === currentUser?.resourceId;
-  const canEditActualHours = canEdit || isAssignedToCurrentUser;
 
   const resource = action.resourceId ? resources.find((item) => item.id === action.resourceId) : undefined;
   const resourceEvents = resource ? calendarEvents.filter((event) => event.resourceId === resource.id) : [];
@@ -52,7 +47,12 @@ export default function ActionDetailModal({ actionId, onClose }: ActionDetailMod
   const booking = getBookingForAction(action.id, calendarEvents);
   const scheduledDay = action.scheduledDate ? parseLocalDate(action.scheduledDate) : new Date();
   const conflicts = getActionConflicts(action, calendarEvents);
-  const suggestions: TimeWindow[] = resource ? findAvailableSlots(scheduledDay, action.estimatedHours, resource.id, calendarEvents) : [];
+  const suggestions: TimeWindow[] = resource ? findAvailableSlots(scheduledDay, action.estimatedHours ?? 1, resource.id, calendarEvents) : [];
+
+  const actionTimeEntries = timeEntries
+    .filter((entry) => entry.actionId === action.id)
+    .sort((a, b) => new Date(b.workDate).getTime() - new Date(a.workDate).getTime());
+  const actualHours = getActionActualHours(timeEntries, action.id);
 
   const bookingStatusLabel = !booking ? "Not yet scheduled" : booking.status === "provisional" ? "Provisional — pending publish" : "Published";
   const bookingStatusClassName = !booking
@@ -73,31 +73,11 @@ export default function ActionDetailModal({ actionId, onClose }: ActionDetailMod
     }
   };
 
-  const parsedActualHours = actualHoursInput.trim() === "" ? undefined : Number(actualHoursInput);
-  const hasValidPreview = parsedActualHours !== undefined && !Number.isNaN(parsedActualHours);
-
-  const handleSubmit = (event: FormEvent<HTMLFormElement>): void => {
-    event.preventDefault();
-    setFormError(undefined);
-
-    const result = updateAction(actionId, {
-      actualHours: parsedActualHours,
-    });
-
-    if (!result.ok) {
-      setFormError(result.error);
-      return;
-    }
-
-    showToast(`Actual hours updated for "${action.name}".`);
-    onClose();
-  };
-
   return (
     <Modal title={action.name} description={task?.name} onClose={onClose} widthClassName={resource ? "max-w-3xl" : "max-w-md"}>
       <div>
         <DetailRow label="Status" value={<StatusBadge status={action.status} />} />
-        <DetailRow label="Booked Hours" value={`${action.estimatedHours}h`} />
+        <DetailRow label="Booked Hours" value={action.estimatedHours !== undefined ? `${action.estimatedHours}h` : "Ad hoc (no estimate)"} />
       </div>
 
       <div className="mt-4 border-t border-border pt-4">
@@ -155,50 +135,45 @@ export default function ActionDetailModal({ actionId, onClose }: ActionDetailMod
         )}
       </div>
 
-      {canEditActualHours ? (
-        <form onSubmit={handleSubmit} noValidate className="mt-4">
-          <FormField label="Actual Hours" htmlFor="action-actual-hours" optional>
-            <input
-              id="action-actual-hours"
-              type="number"
-              min={0}
-              step={1}
-              value={actualHoursInput}
-              onChange={(event) => setActualHoursInput(event.target.value)}
-              className={inputClassName}
-            />
-          </FormField>
-
-          {hasValidPreview ? (
-            <p className="mb-4 -mt-2 text-sm text-muted-foreground">
-              Difference: <HoursDifferenceValue estimatedHours={action.estimatedHours} actualHours={parsedActualHours} />
-            </p>
-          ) : null}
-
-          {formError ? <p className="mb-4 text-sm text-destructive">{formError}</p> : null}
-
-          <div className="mt-2 flex justify-end gap-2">
-            <button type="button" onClick={onClose} className="rounded-md border border-border px-3 py-2 text-sm font-medium text-surface-foreground transition-colors hover:bg-muted">
-              Cancel
-            </button>
-            <button type="submit" className="rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover">
-              Save
-            </button>
-          </div>
-        </form>
-      ) : (
-        <div className="mt-4 border-t border-border pt-4">
-          <DetailRow label="Actual Hours" value={action.actualHours !== undefined ? `${action.actualHours}h` : "Not yet recorded"} />
-          <p className="mt-2 text-xs text-muted-foreground">
-            Only {resource ? resource.name : "the assigned resource"} or a Project Manager can record actual hours for this Action.
-          </p>
-          <div className="mt-3 flex justify-end">
-            <button type="button" onClick={onClose} className="rounded-md border border-border px-3 py-2 text-sm font-medium text-surface-foreground transition-colors hover:bg-muted">
-              Close
-            </button>
-          </div>
+      <div className="mt-4 border-t border-border pt-4">
+        <div className="mb-3 flex items-center justify-between">
+          <h3 className="text-sm font-semibold text-surface-foreground">Time Logged</h3>
+          {action.estimatedHours !== undefined ? (
+            <span className="text-xs text-muted-foreground">
+              {actualHours}h logged of {action.estimatedHours}h — <HoursDifferenceValue estimatedHours={action.estimatedHours} actualHours={actualHours} />
+            </span>
+          ) : (
+            <span className="text-xs text-muted-foreground">{actualHours}h logged (ad hoc, no estimate)</span>
+          )}
         </div>
-      )}
+
+        {actionTimeEntries.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No time logged against this Action yet.</p>
+        ) : (
+          <div>
+            {actionTimeEntries.map((entry) => {
+              const timeType = timeTypes.find((item) => item.id === entry.timeTypeId);
+              return (
+                <div key={entry.id} className="flex flex-wrap items-center justify-between gap-2 border-b border-border py-2 text-sm last:border-b-0">
+                  <span className="font-medium text-surface-foreground">{entry.workDate}</span>
+                  <span className="text-muted-foreground">{entry.durationHours}h{timeType ? ` — ${timeType.timeTag}` : ""}</span>
+                  {entry.description ? <span className="w-full text-xs text-muted-foreground">{entry.description}</span> : null}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        <p className="mt-3 text-xs text-muted-foreground">
+          {resource ? resource.name : "The assigned resource"} logs time against this Action from the "Log Time" action on their dashboard.
+        </p>
+      </div>
+
+      <div className="mt-4 flex justify-end">
+        <button type="button" onClick={onClose} className="rounded-md border border-border px-3 py-2 text-sm font-medium text-surface-foreground transition-colors hover:bg-muted">
+          Close
+        </button>
+      </div>
     </Modal>
   );
 }

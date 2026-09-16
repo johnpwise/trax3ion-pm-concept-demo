@@ -67,7 +67,8 @@ export const createSchedulerSlice: StateCreator<DemoStore, [], [], SchedulerSlic
     const phase = task ? state.phases.find((item) => item.id === task.phaseId) : undefined;
     const project = phase ? state.projects.find((item) => item.id === phase.projectId) : undefined;
 
-    const { start, end } = computeBookingWindow(action.scheduledDate, action.scheduledTime, action.estimatedHours);
+    // Ad-hoc Actions have no estimate to size a booking from; default to a 1h placeholder block.
+    const { start, end } = computeBookingWindow(action.scheduledDate, action.scheduledTime, action.estimatedHours ?? 1);
 
     if (existing) {
       set((s) => ({

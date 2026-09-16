@@ -31,7 +31,8 @@ export default function ActionFormModal({ taskId, onClose }: ActionFormModalProp
     event.preventDefault();
     setFormError(undefined);
 
-    const result = createAction({ taskId, name, estimatedHours: Number(estimatedHours), status });
+    const trimmedHours = estimatedHours.trim();
+    const result = createAction({ taskId, name, estimatedHours: trimmedHours === "" ? undefined : Number(trimmedHours), status });
 
     if (!result.ok) {
       setFormError(result.error);
@@ -50,10 +51,9 @@ export default function ActionFormModal({ taskId, onClose }: ActionFormModalProp
         </FormField>
 
         <div className="grid grid-cols-2 gap-4">
-          <FormField label="Estimated Hours" htmlFor="action-hours">
+          <FormField label="Estimated Hours" htmlFor="action-hours" optional>
             <input
               id="action-hours"
-              required
               type="number"
               min={1}
               step={1}

@@ -1,4 +1,4 @@
-import type { Action, Phase, Project, StatusFilter, Task } from "../../types/domain";
+import type { Action, Phase, Project, StatusFilter, Task, TimeEntry } from "../../types/domain";
 
 export function isPositiveInteger(value: number): boolean {
   return Number.isInteger(value) && value > 0;
@@ -51,7 +51,7 @@ export function getPhaseRemainingHours(phase: Phase, tasks: Task[]): number {
 }
 
 export function getTaskAllocatedHours(actions: Action[], taskId: string): number {
-  return getTaskActions(actions, taskId).reduce((sum, action) => sum + action.estimatedHours, 0);
+  return getTaskActions(actions, taskId).reduce((sum, action) => sum + (action.estimatedHours ?? 0), 0);
 }
 
 export function getTaskRemainingHours(task: Task, actions: Action[]): number {
@@ -81,9 +81,16 @@ export function canAllocateTask(phase: Phase, tasks: Task[], hours: number, edit
 export function canAllocateAction(task: Task, actions: Action[], hours: number, editingActionId?: string): boolean {
   const otherActionsTotal = getTaskActions(actions, task.id)
     .filter((action) => action.id !== editingActionId)
-    .reduce((sum, action) => sum + action.estimatedHours, 0);
+    .reduce((sum, action) => sum + (action.estimatedHours ?? 0), 0);
 
   return otherActionsTotal + hours <= task.estimatedHours;
+}
+
+// --- Time Entry derived values -----------------------------------------------
+
+/** Total actual hours logged against an Action — the single source of truth, replacing the old `action.actualHours` total. */
+export function getActionActualHours(timeEntries: TimeEntry[], actionId: string): number {
+  return timeEntries.filter((entry) => entry.actionId === actionId).reduce((sum, entry) => sum + entry.durationHours, 0);
 }
 
 // --- Customer / project relationship ----------------------------------------

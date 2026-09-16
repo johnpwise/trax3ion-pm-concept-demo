@@ -2,12 +2,14 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 import { SEED_VERSION } from "../data/demo-seed";
+import { createAdHocTimeSlice, type AdHocTimeSlice } from "./slices/adHocTimeSlice";
 import { createCustomerSlice, type CustomerSlice } from "./slices/customerSlice";
 import { createDemoSlice, type DemoSlice } from "./slices/demoSlice";
 import { createProjectSlice, type ProjectSlice } from "./slices/projectSlice";
 import { createSchedulerSlice, type SchedulerSlice } from "./slices/schedulerSlice";
+import { createTimeEntrySlice, type TimeEntrySlice } from "./slices/timeEntrySlice";
 
-export type DemoStore = CustomerSlice & ProjectSlice & SchedulerSlice & DemoSlice;
+export type DemoStore = CustomerSlice & ProjectSlice & SchedulerSlice & TimeEntrySlice & AdHocTimeSlice & DemoSlice;
 
 export const DEMO_STORE_STORAGE_KEY = "trax3ion-pm-demo-v1";
 
@@ -17,6 +19,8 @@ export const useTraxionDemoStore = create<DemoStore>()(
       ...createCustomerSlice(...args),
       ...createProjectSlice(...args),
       ...createSchedulerSlice(...args),
+      ...createTimeEntrySlice(...args),
+      ...createAdHocTimeSlice(...args),
       ...createDemoSlice(...args),
     }),
     {
