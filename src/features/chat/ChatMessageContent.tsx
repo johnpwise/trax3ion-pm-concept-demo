@@ -1,4 +1,5 @@
 import ReactMarkdown from "react-markdown";
+import rehypeRaw from "rehype-raw";
 import remarkGfm from "remark-gfm";
 import type { Components } from "react-markdown";
 
@@ -52,7 +53,7 @@ type ChatMessageContentProps = {
 export default function ChatMessageContent({ content }: ChatMessageContentProps) {
   return (
     <div className="text-sm [&_*]:text-current">
-      <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
+      <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} components={components}>
         {content}
       </ReactMarkdown>
     </div>
