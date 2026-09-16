@@ -1,15 +1,22 @@
-import { CalendarClock, CheckCircle2, Clock, FolderKanban } from "lucide-react";
+import { CalendarClock, CheckCircle2, ChevronLeft, ChevronRight, Clock, FolderKanban, PieChart } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 
 import PageHeader from "../../app/PageHeader";
 import { useAuthStore } from "../../store/authStore";
-import { getMyActionsNeedingAttention, getMyProjects, getMyUpcomingBookings, getMyWeekUtilisation } from "../../store/selectors/myDashboardSelectors";
+import {
+  getMyActionsNeedingAttention,
+  getMyProjects,
+  getMyUpcomingBookings,
+  getMyWeekBooking,
+  getMyWeekWorkSplit,
+} from "../../store/selectors/myDashboardSelectors";
 import { useTraxionDemoStore } from "../../store/useTraxionDemoStore";
 import type { Action } from "../../types/domain";
-import { formatEventTime, getStartOfWeek } from "../scheduler/calendar-utils";
+import { addDays, addWeeks, formatEventTime, getStartOfWeek } from "../scheduler/calendar-utils";
 import LogTimeModal from "./components/LogTimeModal";
 import UtilisationRing from "./components/UtilisationRing";
+import WorkSplitDonut from "./components/WorkSplitDonut";
 
 function formatRelativeDay(date: Date, now: Date): string {
   const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
@@ -23,8 +30,25 @@ function formatRelativeDay(date: Date, now: Date): string {
   return label;
 }
 
+function formatWeekRange(weekStart: Date): string {
+  const weekEnd = addDays(weekStart, 4);
+  const startMonth = weekStart.toLocaleDateString("en-GB", { month: "short" });
+  const endMonth = weekEnd.toLocaleDateString("en-GB", { month: "short" });
+  const startLabel = `${weekStart.getDate()}${startMonth === endMonth ? "" : ` ${startMonth}`}`;
+  return `${startLabel} – ${weekEnd.getDate()} ${endMonth}`;
+}
+
+function getWeekRelativeLabel(weekOffset: number): string | undefined {
+  if (weekOffset === 0) return "This week";
+  if (weekOffset === 1) return "Next week";
+  if (weekOffset === -1) return "Last week";
+  return undefined;
+}
+
 export default function MyDashboardView() {
   const [isLogTimeModalOpen, setIsLogTimeModalOpen] = useState(false);
+  const [workSplitMode, setWorkSplitMode] = useState<"percent" | "hours">("percent");
+  const [weekOffset, setWeekOffset] = useState(0);
   const currentUser = useAuthStore((state) => state.currentUser);
   const projects = useTraxionDemoStore((state) => state.projects);
   const customers = useTraxionDemoStore((state) => state.customers);
@@ -33,6 +57,7 @@ export default function MyDashboardView() {
   const actions = useTraxionDemoStore((state) => state.actions);
   const calendarEvents = useTraxionDemoStore((state) => state.calendarEvents);
   const timeEntries = useTraxionDemoStore((state) => state.timeEntries);
+  const adHocTimeEntries = useTraxionDemoStore((state) => state.adHocTimeEntries);
 
   const resourceId = currentUser?.resourceId;
 
@@ -46,12 +71,15 @@ export default function MyDashboardView() {
   }
 
   const now = new Date();
-  const weekStart = getStartOfWeek(now);
+  const weekStart = addWeeks(getStartOfWeek(now), weekOffset);
+  const weekRelativeLabel = getWeekRelativeLabel(weekOffset);
+  const weekRangeLabel = formatWeekRange(weekStart);
 
   const myProjects = getMyProjects(resourceId, actions, tasks, phases, projects, customers, calendarEvents);
   const upcomingBookings = getMyUpcomingBookings(resourceId, calendarEvents, now).slice(0, 4);
   const actionsNeedingAttention = getMyActionsNeedingAttention(resourceId, actions, timeEntries, now);
-  const utilisation = getMyWeekUtilisation(resourceId, actions, calendarEvents, timeEntries, weekStart);
+  const booking = getMyWeekBooking(resourceId, calendarEvents, weekStart);
+  const workSplit = getMyWeekWorkSplit(resourceId, timeEntries, adHocTimeEntries, weekStart);
 
   const projectNameForAction = (action: Action): string => {
     const task = tasks.find((item) => item.id === action.taskId);
@@ -80,12 +108,94 @@ export default function MyDashboardView() {
       </button>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,280px)_1fr]">
-        <div className="flex flex-col items-center gap-3 rounded-xl border border-border bg-surface p-5 text-center shadow-sm">
-          <p className="text-sm font-medium text-surface-foreground">This Week at a Glance</p>
-          <UtilisationRing percent={utilisation.percent} size={104} />
-          <p className="text-xs text-muted-foreground">
-            <span className="font-medium text-surface-foreground">{utilisation.bookedHours}h</span> booked of a {utilisation.availableHours}h week
-          </p>
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center justify-between gap-2 rounded-xl border border-border bg-surface px-2 py-2 shadow-sm">
+            <button
+              type="button"
+              onClick={() => setWeekOffset((offset) => offset - 1)}
+              aria-label="Previous week"
+              className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-surface-foreground"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+
+            <div className="flex flex-col items-center">
+              <span className="text-sm font-medium text-surface-foreground">{weekRelativeLabel ?? weekRangeLabel}</span>
+              {weekRelativeLabel ? (
+                <button
+                  type="button"
+                  onClick={() => setWeekOffset(0)}
+                  disabled={weekOffset === 0}
+                  className="text-xs text-muted-foreground enabled:text-primary enabled:hover:underline"
+                >
+                  {weekRangeLabel}
+                </button>
+              ) : (
+                <button type="button" onClick={() => setWeekOffset(0)} className="text-xs text-primary hover:underline">
+                  Jump to this week
+                </button>
+              )}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setWeekOffset((offset) => offset + 1)}
+              aria-label="Next week"
+              className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-surface-foreground"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+
+          <div className="flex flex-col items-center gap-3 rounded-xl border border-border bg-surface p-5 text-center shadow-sm">
+            <p className="text-sm font-medium text-surface-foreground">This Week at a Glance</p>
+            <UtilisationRing percent={booking.percent} size={104} />
+            <p className="text-xs text-muted-foreground">
+              <span className="font-medium text-surface-foreground">{booking.bookedHours}h</span> booked of a {booking.availableHours}h week
+            </p>
+          </div>
+
+          <div className="rounded-xl border border-border bg-surface p-5 shadow-sm">
+            <div className="mb-3 flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <PieChart className="h-4 w-4 text-primary" />
+                <p className="text-sm font-medium text-surface-foreground">This Week's Work Split</p>
+              </div>
+            </div>
+
+            <div className="mb-3 inline-flex rounded-lg border border-border bg-muted/40 p-1" role="tablist" aria-label="Work split view">
+              {(
+                [
+                  { value: "percent", label: "%" },
+                  { value: "hours", label: "Hours" },
+                ] as const
+              ).map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  role="tab"
+                  aria-selected={workSplitMode === option.value}
+                  onClick={() => setWorkSplitMode(option.value)}
+                  className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                    workSplitMode === option.value ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-surface-foreground"
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex justify-center">
+              <WorkSplitDonut
+                projectHours={workSplit.projectHours}
+                adHocHours={workSplit.adHocHours}
+                projectPercent={workSplit.projectPercent}
+                adHocPercent={workSplit.adHocPercent}
+                mode={workSplitMode}
+                size={104}
+              />
+            </div>
+          </div>
         </div>
 
         <div className="rounded-xl border border-border bg-surface p-5 shadow-sm">
