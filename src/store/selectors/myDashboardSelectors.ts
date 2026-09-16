@@ -1,4 +1,4 @@
-import type { Action, CalendarEvent, Customer, Phase, Project, Task, TimeEntry } from "../../types/domain";
+import type { Action, AdHocTimeEntry, CalendarEvent, Customer, Phase, Project, Task, TimeEntry } from "../../types/domain";
 import { addDays, parseLocalDate } from "../../views/scheduler/calendar-utils";
 import { getActionActualHours } from "./projectSelectors";
 
@@ -118,4 +118,77 @@ export function getMyWeekUtilisation(
   const percent = Math.min(100, Math.round((bookedHours / availableHours) * 100));
 
   return { bookedHours, availableHours, percent };
+}
+
+export type MyWeekBooking = {
+  bookedHours: number;
+  availableHours: number;
+  percent: number;
+};
+
+/**
+ * Hours booked onto a resource's calendar for a given week (Mon-Fri) — every calendar booking,
+ * Action-linked or not, whose start falls in that window (`syncActionBooking` keeps an Action's
+ * `scheduledDate`/`scheduledTime` mirrored onto a `CalendarEvent`, so this is the single source of
+ * truth for "what's been scheduled"). Reflects what the resource is booked to work that week,
+ * independent of whether that work has actually been logged yet — unlike `getMyWeekWorkSplit`.
+ */
+export function getMyWeekBooking(resourceId: string, calendarEvents: CalendarEvent[], weekStart: Date): MyWeekBooking {
+  const weekEnd = addDays(weekStart, 5);
+
+  const bookedHours = calendarEvents
+    .filter((event) => event.resourceId === resourceId)
+    .filter((event) => {
+      const start = new Date(event.start);
+      return start >= weekStart && start < weekEnd;
+    })
+    .reduce((sum, event) => sum + Math.max(0, (new Date(event.end).getTime() - new Date(event.start).getTime()) / (1000 * 60 * 60)), 0);
+
+  const availableHours = 5 * 8;
+  const percent = Math.min(100, Math.round((bookedHours / availableHours) * 100));
+
+  return { bookedHours, availableHours, percent };
+}
+
+export type MyWeekWorkSplit = {
+  projectHours: number;
+  adHocHours: number;
+  totalHours: number;
+  projectPercent: number;
+  adHocPercent: number;
+};
+
+function sumHoursInWeek<T extends { resourceId: string; workDate: string; durationHours: number }>(
+  resourceId: string,
+  entries: T[],
+  weekStart: Date,
+): number {
+  const weekEnd = addDays(weekStart, 5);
+  return entries
+    .filter((entry) => entry.resourceId === resourceId)
+    .filter((entry) => {
+      const workDate = new Date(entry.workDate);
+      return workDate >= weekStart && workDate < weekEnd;
+    })
+    .reduce((sum, entry) => sum + entry.durationHours, 0);
+}
+
+/**
+ * A resource's current-week split between Project Action time (`TimeEntry`) and Ad-Hoc time
+ * (`AdHocTimeEntry`), both filtered by `workDate` falling in `weekStart`'s Mon-Fri window.
+ * Unlike `getMyWeekUtilisation`, this reflects hours actually logged this week, not assigned workload.
+ */
+export function getMyWeekWorkSplit(
+  resourceId: string,
+  timeEntries: TimeEntry[],
+  adHocTimeEntries: AdHocTimeEntry[],
+  weekStart: Date,
+): MyWeekWorkSplit {
+  const projectHours = sumHoursInWeek(resourceId, timeEntries, weekStart);
+  const adHocHours = sumHoursInWeek(resourceId, adHocTimeEntries, weekStart);
+  const totalHours = projectHours + adHocHours;
+  const projectPercent = totalHours === 0 ? 0 : Math.round((projectHours / totalHours) * 100);
+  const adHocPercent = totalHours === 0 ? 0 : 100 - projectPercent;
+
+  return { projectHours, adHocHours, totalHours, projectPercent, adHocPercent };
 }
