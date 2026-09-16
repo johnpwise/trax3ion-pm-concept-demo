@@ -59,7 +59,6 @@ export default function ActionFormModal({ taskId, onClose }: ActionFormModalProp
               step={1}
               value={estimatedHours}
               onChange={(event) => setEstimatedHours(event.target.value)}
-              placeholder="Leave blank for ad-hoc work"
               className={inputClassName}
             />
           </FormField>

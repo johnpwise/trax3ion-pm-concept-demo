@@ -190,20 +190,7 @@ export function createSeedData(): DemoSeed {
     event({ resourceId: "res-ragini", title: "Fleet Tracking Rollout", start: iso(atTime(day(w2, 1), 9)), end: iso(atTime(day(w2, 1), 12)), source: "trax3ion", customerId: "cust-northwind", projectId: "proj-fleet-track" }),
   ];
 
-  const adHocTimeEntries: AdHocTimeEntry[] = [
-    {
-      id: "adhoc-graham-p1",
-      resourceId: "res-graham",
-      workDate: "2026-09-21",
-      startTime: "12:00",
-      durationHours: 1,
-      context: "other-customer",
-      description: "P1 outage for Everline Foods (no open Trax3ion project) — remote session to restore service, interrupted a booked Action.",
-      timeTypeId: "tt-cc",
-      createdAt: iso(atTime(w0, 13)),
-      createdBy: "user-demo",
-    },
-  ];
+  const adHocTimeEntries: AdHocTimeEntry[] = [];
 
   return { customers, projects, phases, tasks, actions, resources, calendarEvents, timeTypes: TIME_TYPES, timeEntries: [], adHocTimeEntries };
 }

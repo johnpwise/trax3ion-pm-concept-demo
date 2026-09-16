@@ -1,5 +1,5 @@
 import { type FormEvent, useState } from "react";
-import { Navigate, useLocation, useNavigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 
 import trax3ionLogo from "../../assets/images/trax3ion-pm-logo.png";
 import FormField, { inputClassName } from "../../components/common/FormField";
@@ -8,7 +8,6 @@ import { useAuthStore } from "../../store/authStore";
 export default function LoginView() {
   const login = useAuthStore((state) => state.login);
   const navigate = useNavigate();
-  const location = useLocation();
 
   // Captured once on mount: if the user already had a session (e.g. a persisted
   // login from a previous visit), skip the form. This intentionally does not
@@ -33,8 +32,7 @@ export default function LoginView() {
       return;
     }
 
-    const fromPathname = (location.state as { from?: { pathname: string } } | null)?.from?.pathname;
-    navigate(fromPathname ?? "/dashboard", { replace: true });
+    navigate("/dashboard", { replace: true });
   };
 
   return (
