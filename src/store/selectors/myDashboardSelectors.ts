@@ -1,4 +1,5 @@
 import type { Action, AdHocTimeEntry, CalendarEvent, Customer, Phase, Project, Task, TimeEntry } from "../../types/domain";
+import { computeBookingWindow } from "../../views/scheduler/availability";
 import { addDays, parseLocalDate } from "../../views/scheduler/calendar-utils";
 import { getActionActualHours } from "./projectSelectors";
 
@@ -63,14 +64,34 @@ export function getMyUpcomingBookings(resourceId: string, calendarEvents: Calend
     .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
 }
 
-/** Actions assigned to a resource, scheduled for a day before today, with no actual hours logged yet. */
-export function getMyActionsNeedingAttention(resourceId: string, actions: Action[], timeEntries: TimeEntry[], now: Date = new Date()): Action[] {
-  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-
+/**
+ * Actions assigned to a resource whose booked window has fully elapsed with no actual hours logged yet.
+ * Reads the resource's actual calendar booking (the `trax3ion` `CalendarEvent` `syncActionBooking` keeps
+ * mirrored onto the Action) rather than just the Action's raw `scheduledDate`, so this is both booking-
+ * aware and time-of-day sensitive: an Action booked 14:00-16:00 today isn't "needing attention" until
+ * 16:00 has passed, not merely once its scheduled day arrives.
+ */
+export function getMyActionsNeedingAttention(
+  resourceId: string,
+  actions: Action[],
+  calendarEvents: CalendarEvent[],
+  timeEntries: TimeEntry[],
+  now: Date = new Date(),
+): Action[] {
   return actions.filter((action) => {
     if (action.resourceId !== resourceId) return false;
     if (getActionActualHours(timeEntries, action.id) > 0) return false;
+
+    const booking = calendarEvents.find((event) => event.source === "trax3ion" && event.actionId === action.id);
+    if (booking) return new Date(booking.end) < now;
+
+    // No synced booking yet (e.g. scheduledTime not set) — fall back to the Action's own fields.
     if (!action.scheduledDate) return false;
+    if (action.scheduledTime) {
+      const { end } = computeBookingWindow(action.scheduledDate, action.scheduledTime, action.estimatedHours ?? 1);
+      return new Date(end) < now;
+    }
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     return parseLocalDate(action.scheduledDate) < startOfToday;
   });
 }
