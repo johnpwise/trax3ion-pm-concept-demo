@@ -77,7 +77,7 @@ export default function MyDashboardView() {
 
   const myProjects = getMyProjects(resourceId, actions, tasks, phases, projects, customers, calendarEvents);
   const upcomingBookings = getMyUpcomingBookings(resourceId, calendarEvents, now).slice(0, 4);
-  const actionsNeedingAttention = getMyActionsNeedingAttention(resourceId, actions, timeEntries, now);
+  const actionsNeedingAttention = getMyActionsNeedingAttention(resourceId, actions, calendarEvents, timeEntries, now);
   const booking = getMyWeekBooking(resourceId, calendarEvents, weekStart);
   const workSplit = getMyWeekWorkSplit(resourceId, timeEntries, adHocTimeEntries, weekStart);
 
