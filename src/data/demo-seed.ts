@@ -1,7 +1,30 @@
-import type { Action, CalendarEvent, Customer, Phase, Project, Resource, Task } from "../types/domain";
+import type { AdHocTimeEntry, Action, CalendarEvent, Customer, Phase, Project, Resource, Task, TimeEntry, TimeType } from "../types/domain";
 import { addDays, atTime } from "../views/scheduler/calendar-utils";
 
-export const SEED_VERSION = 8;
+export const SEED_VERSION = 10;
+
+/**
+ * Mirrors the PRD's supplied TIME TYPE reference data (section on Core Domain Model / Time Type).
+ * Time Cat is not unique — the Banked rows reuse CC/CD/CPM with a `BK -` prefixed Time Tag — so
+ * `id` is the stable identity, per the PRD's explicit "identify independently of Time Cat" requirement.
+ */
+const TIME_TYPES: TimeType[] = [
+  { id: "tt-cc", timeCat: "CC", timeTag: "Chargeable Consultancy", allocateAgainstInvoice: true, allocateAgainstEst: true, sltInternal: true, bankedInternal: false, status: "active" },
+  { id: "tt-cd", timeCat: "CD", timeTag: "Chargeable Development", allocateAgainstInvoice: true, allocateAgainstEst: true, sltInternal: true, bankedInternal: false, status: "active" },
+  { id: "tt-cpm", timeCat: "CPM", timeTag: "Chargeable Project Management", allocateAgainstInvoice: true, allocateAgainstEst: true, sltInternal: true, bankedInternal: false, status: "active" },
+
+  { id: "tt-focc", timeCat: "FOCC", timeTag: "FOC - Consultancy", allocateAgainstInvoice: true, allocateAgainstEst: true, sltInternal: true, bankedInternal: false, status: "active" },
+  { id: "tt-focd", timeCat: "FOCD", timeTag: "FOC - Development", allocateAgainstInvoice: true, allocateAgainstEst: true, sltInternal: true, bankedInternal: false, status: "active" },
+  { id: "tt-focpm", timeCat: "FOCPM", timeTag: "FOC - Project Management", allocateAgainstInvoice: true, allocateAgainstEst: true, sltInternal: true, bankedInternal: false, status: "active" },
+
+  { id: "tt-bk-cc", timeCat: "CC", timeTag: "BK - Chargeable Consultancy", allocateAgainstInvoice: true, allocateAgainstEst: true, sltInternal: true, bankedInternal: true, status: "active" },
+  { id: "tt-bk-cd", timeCat: "CD", timeTag: "BK - Chargeable Development", allocateAgainstInvoice: true, allocateAgainstEst: true, sltInternal: true, bankedInternal: true, status: "active" },
+  { id: "tt-bk-cpm", timeCat: "CPM", timeTag: "BK - Chargeable Project Management", allocateAgainstInvoice: true, allocateAgainstEst: true, sltInternal: true, bankedInternal: true, status: "active" },
+
+  { id: "tt-ncc", timeCat: "NCC", timeTag: "NC - Consultancy", allocateAgainstInvoice: false, allocateAgainstEst: false, sltInternal: true, bankedInternal: false, status: "active" },
+  { id: "tt-ncd", timeCat: "NCD", timeTag: "NC - Development", allocateAgainstInvoice: false, allocateAgainstEst: false, sltInternal: true, bankedInternal: false, status: "active" },
+  { id: "tt-ncpm", timeCat: "NCPM", timeTag: "NC - Project Management", allocateAgainstInvoice: false, allocateAgainstEst: false, sltInternal: true, bankedInternal: false, status: "active" },
+];
 
 /** Fixed anchor so the demo's seeded bookings always land on the same real calendar dates (Monday 21 Sep 2026). */
 export const SEED_START_DATE = new Date(2026, 8, 21);
@@ -14,6 +37,9 @@ export type DemoSeed = {
   actions: Action[];
   resources: Resource[];
   calendarEvents: CalendarEvent[];
+  timeTypes: TimeType[];
+  timeEntries: TimeEntry[];
+  adHocTimeEntries: AdHocTimeEntry[];
 };
 
 function iso(date: Date): string {
@@ -164,5 +190,7 @@ export function createSeedData(): DemoSeed {
     event({ resourceId: "res-ragini", title: "Fleet Tracking Rollout", start: iso(atTime(day(w2, 1), 9)), end: iso(atTime(day(w2, 1), 12)), source: "trax3ion", customerId: "cust-northwind", projectId: "proj-fleet-track" }),
   ];
 
-  return { customers, projects, phases, tasks, actions, resources, calendarEvents };
+  const adHocTimeEntries: AdHocTimeEntry[] = [];
+
+  return { customers, projects, phases, tasks, actions, resources, calendarEvents, timeTypes: TIME_TYPES, timeEntries: [], adHocTimeEntries };
 }

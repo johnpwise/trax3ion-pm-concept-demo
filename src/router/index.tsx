@@ -7,6 +7,7 @@ import CustomersView from "../views/customers/CustomersView";
 import DashboardRouteView from "../views/dashboard/DashboardRouteView";
 import ProjectDetailView from "../views/projects/ProjectDetailView";
 import ProjectsView from "../views/projects/ProjectsView";
+import ReportsView from "../views/reports/ReportsView";
 import SchedulerView from "../views/scheduler/SchedulerView";
 import RequireAuth from "./RequireAuth";
 
@@ -27,6 +28,7 @@ const router = createBrowserRouter([
       { path: "customers", element: <CustomersView /> },
       { path: "customers/:customerId", element: <CustomerDetailView /> },
       { path: "scheduler", element: <SchedulerView /> },
+      { path: "reports", element: <ReportsView /> },
       { path: "*", element: <Navigate to="/dashboard" replace /> },
     ],
   },

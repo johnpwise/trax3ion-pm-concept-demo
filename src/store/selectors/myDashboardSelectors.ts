@@ -1,5 +1,6 @@
-import type { Action, CalendarEvent, Customer, Phase, Project, Task } from "../../types/domain";
+import type { Action, CalendarEvent, Customer, Phase, Project, Task, TimeEntry } from "../../types/domain";
 import { addDays, parseLocalDate } from "../../views/scheduler/calendar-utils";
+import { getActionActualHours } from "./projectSelectors";
 
 export type MyProjectSummary = {
   project: Project;
@@ -63,12 +64,12 @@ export function getMyUpcomingBookings(resourceId: string, calendarEvents: Calend
 }
 
 /** Actions assigned to a resource, scheduled for a day before today, with no actual hours logged yet. */
-export function getMyActionsNeedingAttention(resourceId: string, actions: Action[], now: Date = new Date()): Action[] {
+export function getMyActionsNeedingAttention(resourceId: string, actions: Action[], timeEntries: TimeEntry[], now: Date = new Date()): Action[] {
   const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
   return actions.filter((action) => {
     if (action.resourceId !== resourceId) return false;
-    if (action.actualHours !== undefined) return false;
+    if (getActionActualHours(timeEntries, action.id) > 0) return false;
     if (!action.scheduledDate) return false;
     return parseLocalDate(action.scheduledDate) < startOfToday;
   });
@@ -90,7 +91,13 @@ export type MyWeekUtilisation = {
  * (or without ever) picking a specific date/time slot for it, and that commitment should still show up
  * as workload against the resource straight away.
  */
-export function getMyWeekUtilisation(resourceId: string, actions: Action[], calendarEvents: CalendarEvent[], weekStart: Date): MyWeekUtilisation {
+export function getMyWeekUtilisation(
+  resourceId: string,
+  actions: Action[],
+  calendarEvents: CalendarEvent[],
+  timeEntries: TimeEntry[],
+  weekStart: Date,
+): MyWeekUtilisation {
   const weekEnd = addDays(weekStart, 5);
 
   const bookedFromCalendar = calendarEvents
@@ -103,7 +110,7 @@ export function getMyWeekUtilisation(resourceId: string, actions: Action[], cale
 
   const bookedFromAssignedActions = actions
     .filter((action) => action.resourceId === resourceId)
-    .reduce((sum, action) => sum + (action.actualHours ?? action.estimatedHours), 0);
+    .reduce((sum, action) => sum + (getActionActualHours(timeEntries, action.id) || (action.estimatedHours ?? 0)), 0);
 
   const bookedHours = bookedFromCalendar + bookedFromAssignedActions;
 

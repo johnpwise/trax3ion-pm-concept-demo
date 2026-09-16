@@ -32,6 +32,7 @@ export default function MyDashboardView() {
   const tasks = useTraxionDemoStore((state) => state.tasks);
   const actions = useTraxionDemoStore((state) => state.actions);
   const calendarEvents = useTraxionDemoStore((state) => state.calendarEvents);
+  const timeEntries = useTraxionDemoStore((state) => state.timeEntries);
 
   const resourceId = currentUser?.resourceId;
 
@@ -49,8 +50,8 @@ export default function MyDashboardView() {
 
   const myProjects = getMyProjects(resourceId, actions, tasks, phases, projects, customers, calendarEvents);
   const upcomingBookings = getMyUpcomingBookings(resourceId, calendarEvents, now).slice(0, 4);
-  const actionsNeedingAttention = getMyActionsNeedingAttention(resourceId, actions, now);
-  const utilisation = getMyWeekUtilisation(resourceId, actions, calendarEvents, weekStart);
+  const actionsNeedingAttention = getMyActionsNeedingAttention(resourceId, actions, timeEntries, now);
+  const utilisation = getMyWeekUtilisation(resourceId, actions, calendarEvents, timeEntries, weekStart);
 
   const projectNameForAction = (action: Action): string => {
     const task = tasks.find((item) => item.id === action.taskId);

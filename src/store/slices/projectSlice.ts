@@ -8,7 +8,6 @@ import {
   getPhaseAllocatedHours,
   getProjectAllocatedHours,
   getTaskAllocatedHours,
-  isNonNegativeQuarterHour,
   isPositiveInteger,
 } from "../selectors/projectSelectors";
 import type { DemoStore } from "../useTraxionDemoStore";
@@ -36,7 +35,7 @@ export type ProjectSlice = {
   createTask: (input: { phaseId: string; name: string; description?: string; estimatedHours: number; status?: EntityStatus }) => MutationResult;
   updateTask: (id: string, patch: Partial<Omit<Task, "id" | "phaseId">>) => UpdateResult;
 
-  createAction: (input: { taskId: string; name: string; estimatedHours: number; status?: EntityStatus }) => MutationResult;
+  createAction: (input: { taskId: string; name: string; estimatedHours?: number; status?: EntityStatus }) => MutationResult;
   updateAction: (id: string, patch: Partial<Omit<Action, "id" | "taskId">>) => UpdateResult;
 };
 
@@ -227,12 +226,14 @@ export const createProjectSlice: StateCreator<DemoStore, [], [], ProjectSlice> =
     if (!name) {
       return { ok: false, error: "Action Name is required." };
     }
-    if (!isPositiveInteger(input.estimatedHours)) {
-      return { ok: false, error: "Estimated Hours must be a whole number greater than zero." };
-    }
-    if (!canAllocateAction(task, get().actions, input.estimatedHours)) {
-      const remaining = task.estimatedHours - getTaskAllocatedHours(get().actions, task.id);
-      return { ok: false, error: `Only ${remaining} task hours remain available for allocation.` };
+    if (input.estimatedHours !== undefined) {
+      if (!isPositiveInteger(input.estimatedHours)) {
+        return { ok: false, error: "Estimated Hours must be a whole number greater than zero." };
+      }
+      if (!canAllocateAction(task, get().actions, input.estimatedHours)) {
+        const remaining = task.estimatedHours - getTaskAllocatedHours(get().actions, task.id);
+        return { ok: false, error: `Only ${remaining} task hours remain available for allocation.` };
+      }
     }
 
     const action: Action = {
@@ -263,13 +264,9 @@ export const createProjectSlice: StateCreator<DemoStore, [], [], ProjectSlice> =
         return { ok: false, error: "Estimated Hours must be a whole number greater than zero." };
       }
       if (!canAllocateAction(task, get().actions, patch.estimatedHours, id)) {
-        const remaining = task.estimatedHours - getTaskAllocatedHours(get().actions, task.id) + action.estimatedHours;
+        const remaining = task.estimatedHours - getTaskAllocatedHours(get().actions, task.id) + (action.estimatedHours ?? 0);
         return { ok: false, error: `Only ${remaining} task hours remain available for allocation.` };
       }
-    }
-
-    if (patch.actualHours !== undefined && !isNonNegativeQuarterHour(patch.actualHours)) {
-      return { ok: false, error: "Actual Hours must be zero or more, in 15-minute (0.25h) increments." };
     }
 
     set((state) => ({

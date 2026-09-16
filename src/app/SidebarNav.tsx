@@ -4,6 +4,7 @@ import {
   ChevronLeft,
   ChevronRight,
   FolderKanban,
+  FileBarChart,
   LayoutDashboard,
   LogOut,
   Moon,
@@ -25,6 +26,7 @@ const NAV_ITEMS = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, pmOnly: false },
   { to: "/projects", label: "Projects", icon: FolderKanban, pmOnly: true },
   { to: "/customers", label: "Customers", icon: Users, pmOnly: true },
+  { to: "/reports", label: "Reports", icon: FileBarChart, pmOnly: true },
   { to: "/scheduler", label: "Scheduler", icon: CalendarDays, pmOnly: true },
 ] as const;
 
