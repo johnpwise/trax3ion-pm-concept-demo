@@ -6,8 +6,9 @@ import { createCustomerSlice, type CustomerSlice } from "./slices/customerSlice"
 import { createDemoSlice, type DemoSlice } from "./slices/demoSlice";
 import { createProjectSlice, type ProjectSlice } from "./slices/projectSlice";
 import { createSchedulerSlice, type SchedulerSlice } from "./slices/schedulerSlice";
+import { createTimeEntrySlice, type TimeEntrySlice } from "./slices/timeEntrySlice";
 
-export type DemoStore = CustomerSlice & ProjectSlice & SchedulerSlice & DemoSlice;
+export type DemoStore = CustomerSlice & ProjectSlice & SchedulerSlice & TimeEntrySlice & DemoSlice;
 
 export const DEMO_STORE_STORAGE_KEY = "trax3ion-pm-demo-v1";
 
@@ -17,6 +18,7 @@ export const useTraxionDemoStore = create<DemoStore>()(
       ...createCustomerSlice(...args),
       ...createProjectSlice(...args),
       ...createSchedulerSlice(...args),
+      ...createTimeEntrySlice(...args),
       ...createDemoSlice(...args),
     }),
     {

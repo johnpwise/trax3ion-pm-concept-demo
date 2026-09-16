@@ -4,8 +4,10 @@ import FormField, { inputClassName } from "../../../components/common/FormField"
 import Modal from "../../../components/common/Modal";
 import { useToastStore } from "../../../components/common/toastStore";
 import { useAuthStore } from "../../../store/authStore";
+import { getActionActualHours } from "../../../store/selectors/projectSelectors";
 import { useTraxionDemoStore } from "../../../store/useTraxionDemoStore";
 import type { Action, Customer, Phase, Project, Task } from "../../../types/domain";
+import { toDateInputValue } from "../../scheduler/calendar-utils";
 
 type LogTimeModalProps = {
   onClose: () => void;
@@ -64,7 +66,10 @@ export default function LogTimeModal({ onClose }: LogTimeModalProps) {
   const phases = useTraxionDemoStore((state) => state.phases);
   const tasks = useTraxionDemoStore((state) => state.tasks);
   const actions = useTraxionDemoStore((state) => state.actions);
-  const updateAction = useTraxionDemoStore((state) => state.updateAction);
+  const timeEntries = useTraxionDemoStore((state) => state.timeEntries);
+  const timeTypes = useTraxionDemoStore((state) => state.timeTypes);
+  const createTimeEntry = useTraxionDemoStore((state) => state.createTimeEntry);
+  const deleteTimeEntry = useTraxionDemoStore((state) => state.deleteTimeEntry);
   const showToast = useToastStore((state) => state.showToast);
 
   const lookups: Lookups = useMemo(
@@ -100,14 +105,13 @@ export default function LogTimeModal({ onClose }: LogTimeModalProps) {
   const [hours, setHours] = useState(0);
   const [minutes, setMinutes] = useState(0);
   const [description, setDescription] = useState("");
+  const [selectedTimeTypeId, setSelectedTimeTypeId] = useState(() => timeTypes.find((tt) => tt.id === "tt-cc")?.id ?? timeTypes[0]?.id ?? "");
   const [formError, setFormError] = useState<string | undefined>();
   const [lastLog, setLastLog] = useState<{
-    actionId: string;
+    entryId: string;
     actionName: string;
     hours: number;
     minutes: number;
-    previousActualHours?: number;
-    previousWorkNotes?: string;
   } | null>(null);
 
   const handleCustomerChange = (customerId: string): void => {
@@ -157,17 +161,23 @@ export default function LogTimeModal({ onClose }: LogTimeModalProps) {
       setFormError("Enter a time greater than zero.");
       return false;
     }
+    if (!selectedTimeTypeId) {
+      setFormError("Select a Time Type.");
+      return false;
+    }
+    if (!resourceId || !currentUser) {
+      setFormError("No Resource is linked to your account.");
+      return false;
+    }
 
-    const previousActualHours = selectedAction?.actualHours;
-    const previousWorkNotes = selectedAction?.workNotes;
-    const currentActualHours = previousActualHours ?? 0;
-    const trimmedDescription = description.trim();
-    const entry = `[${new Date().toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}] ${hours}h ${minutes}m — ${trimmedDescription}`;
-    const nextWorkNotes = trimmedDescription ? [previousWorkNotes, entry].filter(Boolean).join("\n") : previousWorkNotes;
-
-    const result = updateAction(selectedActionId, {
-      actualHours: Math.round((currentActualHours + totalHours) * 4) / 4,
-      workNotes: nextWorkNotes,
+    const result = createTimeEntry({
+      actionId: selectedActionId,
+      resourceId,
+      workDate: toDateInputValue(new Date()),
+      durationHours: Math.round(totalHours * 4) / 4,
+      description: description.trim(),
+      timeTypeId: selectedTimeTypeId,
+      createdBy: currentUser.id,
     });
 
     if (!result.ok) {
@@ -176,17 +186,14 @@ export default function LogTimeModal({ onClose }: LogTimeModalProps) {
     }
 
     showToast(`Logged ${hours}h ${minutes}m against "${selectedAction?.name}".`);
-    setLastLog({ actionId: selectedActionId, actionName: selectedAction?.name ?? "", hours, minutes, previousActualHours, previousWorkNotes });
+    setLastLog({ entryId: result.id, actionName: selectedAction?.name ?? "", hours, minutes });
     return true;
   };
 
   const handleUndoLastEntry = (): void => {
     if (!lastLog) return;
 
-    const result = updateAction(lastLog.actionId, {
-      actualHours: lastLog.previousActualHours,
-      workNotes: lastLog.previousWorkNotes,
-    });
+    const result = deleteTimeEntry(lastLog.entryId);
 
     if (!result.ok) {
       setFormError(result.error);
@@ -271,7 +278,7 @@ export default function LogTimeModal({ onClose }: LogTimeModalProps) {
           >
             {actionOptions.map((action) => (
               <option key={action.id} value={action.id}>
-                {action.name} ({action.actualHours ?? 0}h / {action.estimatedHours}h)
+                {action.name} ({getActionActualHours(timeEntries, action.id)}h / {action.estimatedHours !== undefined ? `${action.estimatedHours}h` : "ad hoc"})
               </option>
             ))}
           </select>
@@ -318,6 +325,21 @@ export default function LogTimeModal({ onClose }: LogTimeModalProps) {
             </button>
           ))}
         </div>
+
+        <FormField label="Time Type" htmlFor="log-time-type">
+          <select
+            id="log-time-type"
+            value={selectedTimeTypeId}
+            onChange={(event) => setSelectedTimeTypeId(event.target.value)}
+            className={inputClassName}
+          >
+            {timeTypes.map((timeType) => (
+              <option key={timeType.id} value={timeType.id}>
+                {timeType.timeTag}
+              </option>
+            ))}
+          </select>
+        </FormField>
 
         <FormField label="Description" htmlFor="log-time-description" optional>
           <textarea

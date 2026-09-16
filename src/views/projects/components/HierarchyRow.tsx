@@ -13,7 +13,7 @@ type HierarchyRowProps = {
   kind: string;
   name: string;
   status: EntityStatus;
-  estimatedHours: number;
+  estimatedHours?: number;
   allocatedHours?: number;
   actualHours?: number;
   resourceId?: string;
@@ -128,12 +128,12 @@ export default function HierarchyRow({
 
         <div className="w-full max-w-[260px] sm:w-64">
           {allocatedHours !== undefined ? (
-            <AllocationBar estimatedHours={estimatedHours} allocatedHours={allocatedHours} size="sm" />
+            <AllocationBar estimatedHours={estimatedHours ?? 0} allocatedHours={allocatedHours} size="sm" />
           ) : (
             <div className="grid grid-cols-3 gap-2 text-right">
               <div>
                 <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Booked</p>
-                <p className="text-sm text-surface-foreground">{estimatedHours}h</p>
+                <p className="text-sm text-surface-foreground">{estimatedHours !== undefined ? `${estimatedHours}h` : "Ad hoc"}</p>
               </div>
               {actualHours !== undefined ? (
                 <>
@@ -143,7 +143,11 @@ export default function HierarchyRow({
                   </div>
                   <div>
                     <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Diff.</p>
-                    <HoursDifferenceValue estimatedHours={estimatedHours} actualHours={actualHours} />
+                    {estimatedHours !== undefined ? (
+                      <HoursDifferenceValue estimatedHours={estimatedHours} actualHours={actualHours} />
+                    ) : (
+                      <span className="font-medium text-muted-foreground">—</span>
+                    )}
                   </div>
                 </>
               ) : null}

@@ -23,6 +23,8 @@ export const createDemoSlice: StateCreator<DemoStore, [], [], DemoSlice> = (set)
       actions: seed.actions,
       resources: seed.resources,
       calendarEvents: seed.calendarEvents,
+      timeTypes: seed.timeTypes,
+      timeEntries: seed.timeEntries,
       selectedResourceIds: currentUser ? [currentUser.id] : [],
       visibleWeekStart: SEED_START_DATE.toISOString(),
       seedVersion: SEED_VERSION,
