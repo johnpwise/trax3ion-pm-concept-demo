@@ -1,7 +1,8 @@
-import { useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useBlocker, useParams } from "react-router-dom";
 
 import PageHeader from "../../app/PageHeader";
+import ConfirmDialog from "../../components/common/ConfirmDialog";
 import EmptyState from "../../components/common/EmptyState";
 import HoursSummary from "../../components/common/HoursSummary";
 import { StatusBadge } from "../../components/common/StatusBadge";
@@ -37,6 +38,24 @@ export default function ProjectDetailView() {
   const publishBookingsForProject = useTraxionDemoStore((state) => state.publishBookingsForProject);
   const showToast = useToastStore((state) => state.showToast);
 
+  const provisionalBookings = project ? getProvisionalBookingsForProject(calendarEvents, project.id) : [];
+  const hasUnpublishedChanges = provisionalBookings.length > 0;
+
+  const blocker = useBlocker(
+    ({ currentLocation, nextLocation }) => hasUnpublishedChanges && currentLocation.pathname !== nextLocation.pathname,
+  );
+
+  useEffect(() => {
+    if (!hasUnpublishedChanges) return;
+
+    const handleBeforeUnload = (event: BeforeUnloadEvent): void => {
+      event.preventDefault();
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [hasUnpublishedChanges]);
+
   if (!project) {
     return (
       <EmptyState
@@ -53,7 +72,6 @@ export default function ProjectDetailView() {
   }
 
   const allocated = getProjectAllocatedHours(phases, project.id);
-  const provisionalBookings = getProvisionalBookingsForProject(calendarEvents, project.id);
 
   const handleToggleStatus = (): void => {
     const nextStatus = project.status === "active" ? "inactive" : "active";
@@ -131,6 +149,17 @@ export default function ProjectDetailView() {
       {activeModal?.kind === "task" ? <TaskFormModal phaseId={activeModal.phaseId} onClose={() => setActiveModal(null)} /> : null}
       {activeModal?.kind === "action" ? <ActionFormModal taskId={activeModal.taskId} onClose={() => setActiveModal(null)} /> : null}
       {activeModal?.kind === "actionDetail" ? <ActionDetailModal actionId={activeModal.actionId} onClose={() => setActiveModal(null)} /> : null}
+
+      {blocker.state === "blocked" ? (
+        <ConfirmDialog
+          title="Unpublished scheduling changes"
+          description={`${provisionalBookings.length} scheduling change${provisionalBookings.length === 1 ? "" : "s"} on this project ${provisionalBookings.length === 1 ? "hasn't" : "haven't"} been published yet. Leaving now will keep them as provisional. Leave anyway?`}
+          confirmLabel="Leave without publishing"
+          tone="destructive"
+          onConfirm={() => blocker.proceed()}
+          onCancel={() => blocker.reset()}
+        />
+      ) : null}
     </div>
   );
 }
